@@ -92,7 +92,7 @@ CS.customer = (function () {
   function draw() {
     const { icon, esc, head } = { icon: CS.ui.icon, esc: U.esc, head: CS.ui.head }, c = form.c;
     const si = sectionInfo(c.grade);
-    CS.ui.openSheet(`${head('Who is buying?', 'Needed for every sale. ContactSheet remembers them for next time.')}
+    CS.ui.openSheet(`${head('Who is buying?', 'Needed for every sale. BoothPay remembers them for next time.')}
       <div class="form" id="cuForm">
         <label class="field"><span>Name</span>
           <input class="input" id="cuName" value="${esc(c.name)}" placeholder="Juan Dela Cruz" autocomplete="off" autocapitalize="words" spellcheck="false" autofocus>

@@ -11,11 +11,11 @@ CS.pwa = (function () {
     if (!slot) return;
     if (standalone() || (!promptEvt && !isIOS)) { slot.innerHTML = ''; return; }
     slot.innerHTML = promptEvt
-      ? `<button class="install" data-install>${icon('download')}<span><b>Add ContactSheet to this phone</b><span class="sub">Opens from the home screen, even with no internet</span></span></button>`
-      : `<p class="install">${icon('phone')}<span><b>Add ContactSheet to this iPhone</b><span class="sub">In Safari, tap the Share button, then <b>Add to Home Screen</b>.</span></span></p>`;
+      ? `<button class="install" data-install>${icon('download')}<span><b>Add BoothPay to this phone</b><span class="sub">Opens from the home screen, even with no internet</span></span></button>`
+      : `<p class="install">${icon('phone')}<span><b>Add BoothPay to this iPhone</b><span class="sub">In Safari, tap the Share button, then <b>Add to Home Screen</b>.</span></span></p>`;
   }
   window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); promptEvt = e; drawInstall(); });
-  window.addEventListener('appinstalled', () => { promptEvt = null; drawInstall(); CS.ui.toast('ContactSheet is on your home screen.'); });
+  window.addEventListener('appinstalled', () => { promptEvt = null; drawInstall(); CS.ui.toast('BoothPay is on your home screen.'); });
   document.addEventListener('click', async e => {
     if (!e.target.closest('[data-install]') || !promptEvt) return;
     promptEvt.prompt();
@@ -28,7 +28,7 @@ CS.pwa = (function () {
     if (document.getElementById('updateBar')) return;
     const bar = document.createElement('div');
     bar.id = 'updateBar'; bar.className = 'update-bar'; bar.setAttribute('role', 'status');
-    bar.innerHTML = `${icon('sync')}<span>New version of ContactSheet</span><button class="btn sm primary">Update</button>`;
+    bar.innerHTML = `${icon('sync')}<span>New version of BoothPay</span><button class="btn sm primary">Update</button>`;
     bar.querySelector('button').addEventListener('click', () => {
       updating = true;
       if (reg.waiting) reg.waiting.postMessage('update-now');

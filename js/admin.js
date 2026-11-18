@@ -129,7 +129,7 @@ CS.admin = (function () {
       <ol class="steps">
         <li><b>1</b><span>Download the setup file below${s.configured ? ' (it also carries the Sheet connection)' : ''}.</span></li>
         <li><b>2</b><span>Send it to each booth phone (Messenger, Drive, or USB).</span></li>
-        <li><b>3</b><span>On the phone, open ContactSheet and tap <b>"Got a setup file? Load it"</b>.</span></li>
+        <li><b>3</b><span>On the phone, open BoothPay and tap <b>"Got a setup file? Load it"</b>.</span></li>
       </ol>
       <p class="note">${s.configured ? 'After that, phones get booth, price, PIN and event changes from the Sheet by themselves whenever they have internet, and send their sales back.'
         : 'Without a Sheet, do this again after every change. At the end of the day, booth phones tap <b>Send to moderator (CSV)</b> and you upload those files in <b>Upload PMS</b>.'}</p>
@@ -155,7 +155,7 @@ CS.admin = (function () {
     else if (t.id === 'phoneSetup') syncSheet();
     else if ('syncNow' in t.dataset) { CS.sync.run(); toast('Syncing…'); }
     else if ('syncOff' in t.dataset) { CS.sync.setCfg(null); toast('Disconnected from the Sheet.'); syncSheet(); header(); }
-    else if ('setupDl' in t.dataset) { CS.csv.download(`contactsheet-setup-${CS.util.today()}.json`, JSON.stringify(S.exportSetup()), 'application/json'); toast('Setup file saved.'); }
+    else if ('setupDl' in t.dataset) { CS.csv.download(`boothpay-setup-${CS.util.today()}.json`, JSON.stringify(S.exportSetup()), 'application/json'); toast('Setup file saved.'); }
     else if (CS.views[current].click) CS.views[current].click(e, t);
   });
   document.addEventListener('submit', e => { if (e.target.id === 'syncForm') { e.preventDefault(); saveSync(e.target); } });

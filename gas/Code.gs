@@ -1,10 +1,10 @@
 /**
- * ContactSheet ↔ Google Sheet bridge (Apps Script web app).
+ * BoothPay ↔ Google Sheet bridge (Apps Script web app).
  * Setup steps: docs/SYNC_SETUP.md
  *
  * 1. Change SYNC_KEY below to your own secret words (no spaces needed, at least 8 characters).
  * 2. Deploy → New deployment → Web app · Execute as: Me · Who has access: Anyone.
- * 3. Paste the web app URL and the same key in ContactSheet → Moderator → Sync & phones.
+ * 3. Paste the web app URL and the same key in BoothPay → Moderator → Sync & phones.
  */
 const SYNC_KEY = 'CHANGE-ME';
 const VERSION = 4; // 2 = cash counts (CloseOuts) · 3 = customers (Customers) · 4 = stock (Moves) + expenses (Expenses)

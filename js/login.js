@@ -95,7 +95,7 @@
     try {
       if (!S.importSetup(JSON.parse(await f.text()))) throw new Error('bad');
       toast('Setup loaded. Booths and people are up to date.'); showEvent(); show();
-    } catch (err) { toast('That file is not a ContactSheet setup file.', 'bad'); }
+    } catch (err) { toast('That file is not a BoothPay setup file.', 'bad'); }
   });
 
   document.addEventListener('cs-sync', e => { if (e.detail.setupChanged && !pin) { showEvent(); whoIs(); } });

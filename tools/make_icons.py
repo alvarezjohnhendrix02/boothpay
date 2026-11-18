@@ -1,26 +1,31 @@
-"""ContactSheet logo: a cute paper sheet with a face and a tiny checklist (the stock list).
+"""BoothPay logo: a cute market booth — striped awning, little counter with a happy face.
 One geometry on a 48-unit grid → SVG for the app (python tools/make_icons.py svg) + PNG icons (python tools/make_icons.py).
 Preview sheet: python tools/make_icons.py preview <out.png>"""
 import os, sys
 from PIL import Image, ImageDraw
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')  # app folder
-INK, CREAM, CORAL, PINK, MINT, FOLD, LINE = '#2B2342', '#FFF7EA', '#FF8A7A', '#FFA3CF', '#7FE3B4', '#F2D3BD', '#E9D7C3'
+INK, CREAM, CORAL, PINK, LEMON, SHADE = '#2B2342', '#FFF7EA', '#FF8A7A', '#FFA3CF', '#FFE27A', '#4A3F6B'
 
 def shapes():
     s = []
-    s.append(('rect', 11, 6, 26, 36, 4.5, CREAM))                 # the sheet
-    s.append(('poly', [(29.5, 5.5), (37.5, 5.5), (37.5, 13.5)], CORAL))  # cut corner…
-    s.append(('poly', [(29.5, 5.5), (29.5, 11.5), (31.5, 13.5), (37.5, 13.5)], FOLD))  # …folded down
-    s.append(('ellipse', 19.2, 20.5, 2.1, 2.7, INK))              # eyes
-    s.append(('ellipse', 28.8, 20.5, 2.1, 2.7, INK))
-    s.append(('ellipse', 19.9, 19.4, 0.75, 0.75, CREAM))          # eye shine
-    s.append(('ellipse', 29.5, 19.4, 0.75, 0.75, CREAM))
-    s.append(('ellipse', 15.8, 25.2, 2.1, 1.25, PINK))            # blush
-    s.append(('ellipse', 32.2, 25.2, 2.1, 1.25, PINK))
-    s.append(('curve', (21.6, 24.6), (24, 27.6), (26.4, 24.6), 1.3, INK))  # smile
-    for y in (31.2, 36.0):                                        # tiny checklist = inventory
-        s.append(('rect', 15.2, y - 1.4, 2.8, 2.8, 0.8, MINT))
-        s.append(('rect', 20.0, y - 0.8, 12.4 if y < 33 else 9.2, 1.6, 0.8, LINE))
+    s.append(('rect', 10, 17, 28, 15, 1, SHADE))                    # inside the booth
+    s.append(('rect', 9.2, 17, 2.6, 23, 1.2, INK))                  # poles
+    s.append(('rect', 36.2, 17, 2.6, 23, 1.2, INK))
+    s.append(('rect', 6, 6.5, 36, 4.5, 2.2, INK))                   # roof cap
+    w = 36 / 5
+    for i in range(5):                                              # striped awning + scalloped edge
+        c = CREAM if i % 2 == 0 else LEMON
+        x = 6 + i * w
+        s.append(('rect', x, 10, w, 8, 0.4, c))
+        s.append(('ellipse', x + w / 2, 18, w / 2, 3.2, c))
+    s.append(('rect', 6.5, 29.5, 35, 12, 3, CREAM))                 # counter
+    s.append(('ellipse', 19.6, 34.6, 1.6, 2.1, INK))                # face on the counter
+    s.append(('ellipse', 28.4, 34.6, 1.6, 2.1, INK))
+    s.append(('ellipse', 20.1, 33.8, 0.55, 0.55, CREAM))
+    s.append(('ellipse', 28.9, 33.8, 0.55, 0.55, CREAM))
+    s.append(('ellipse', 15.6, 37.6, 1.8, 1.0, PINK))
+    s.append(('ellipse', 32.4, 37.6, 1.8, 1.0, PINK))
+    s.append(('curve', (22.2, 37.2), (24, 39.4), (25.8, 37.2), 1.2, INK))
     return s
 
 def qpts(p0, p1, p2, n=16):

@@ -204,10 +204,10 @@ CS.views.reports = (function () {
     const out = [['date', 'time', 'event', 'booth', 'item', 'qty', 'amount', 'payment', 'source', 'transaction_id', 'customer', 'grade', 'section']];
     filtered().sort((a, b) => a.ts.localeCompare(b.ts)).forEach(r => r.items.forEach(i => out.push([U.dayOf(r.ts), time(r.ts), evName(r.event_id), boothOf(r.booth).name,
       i.name, i.qty, (i.total_c / 100).toFixed(2), PAY[r.pay] || r.pay, SRC[r.source] || r.source, r.id, ...custCols(r)])));
-    CS.csv.download(`contactsheet-sales-${U.today()}.csv`, CS.csv.write(out));
+    CS.csv.download(`boothpay-sales-${U.today()}.csv`, CS.csv.write(out));
   }
   function exportSummary() {
-    const rows = filtered(), out = [['ContactSheet summary', ''], ['Scope', [f.event === '*' ? 'All events' : evName(f.event), f.booth === '*' ? 'All booths' : boothOf(f.booth).name, f.day === '*' ? 'All days' : f.day].join(' / ')], [],
+    const rows = filtered(), out = [['BoothPay summary', ''], ['Scope', [f.event === '*' ? 'All events' : evName(f.event), f.booth === '*' ? 'All booths' : boothOf(f.booth).name, f.day === '*' ? 'All days' : f.day].join(' / ')], [],
       ['Booth', 'Transactions', 'Items', 'Cash', 'GCash', 'Other / not stated', 'Total']];
     const by = {};
     rows.forEach(r => { const o = by[r.booth] || (by[r.booth] = { n: 0, q: 0, cash: 0, gcash: 0, other: 0, t: 0 });
@@ -215,7 +215,7 @@ CS.views.reports = (function () {
     const p = c => (c / 100).toFixed(2), tot = { n: 0, q: 0, cash: 0, gcash: 0, other: 0, t: 0 };
     Object.entries(by).forEach(([b, o]) => { out.push([boothOf(b).name, o.n, o.q, p(o.cash), p(o.gcash), p(o.other), p(o.t)]); Object.keys(tot).forEach(k => { tot[k] += o[k]; }); });
     out.push(['TOTAL', tot.n, tot.q, p(tot.cash), p(tot.gcash), p(tot.other), p(tot.t)]);
-    CS.csv.download(`contactsheet-summary-${U.today()}.csv`, CS.csv.write(out));
+    CS.csv.download(`boothpay-summary-${U.today()}.csv`, CS.csv.write(out));
   }
 
   function click(e, t) {

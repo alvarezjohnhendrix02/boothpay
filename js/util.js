@@ -1,4 +1,4 @@
-/* ContactSheet utilities. Classic script: exposes CS.util. */
+/* BoothPay utilities. Classic script: exposes CS.util. */
 window.CS = window.CS || {};
 CS.util = (function () {
   const TZ = 'Asia/Manila';

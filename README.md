@@ -1,4 +1,4 @@
-# ContactSheet
+# BoothPay
 
 Booth sales app for the SPCIS Media Arts Club. Works offline on phones and syncs to a Google Sheet.
 

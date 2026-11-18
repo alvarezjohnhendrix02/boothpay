@@ -174,7 +174,7 @@
     const rows = [['sale_id', 'date', 'time', 'event_id', 'booth', 'item', 'qty', 'line_total', 'sale_total', 'payment', 'ref', 'status', 'customer', 'sold_by']];
     S.salesToday(sess.booth).forEach(s => s.items.forEach(i => rows.push([s.sale_id, today(new Date(s.ts)), time(s.ts), s.event_id || '', s.booth,
       i.name || (bySku[i.sku] || { name: i.sku }).name, i.qty, (i.price_c * i.qty / 100).toFixed(2), (s.total_c / 100).toFixed(2), s.pay, s.gcash_ref, s.status, s.customer_name || '', s.staff_name || ''])));
-    CS.csv.download(`contactsheet-${sess.booth}-${today()}.csv`, CS.csv.write(rows));
+    CS.csv.download(`boothpay-${sess.booth}-${today()}.csv`, CS.csv.write(rows));
     toast('Saved. Send this file to your moderator.');
   }
 

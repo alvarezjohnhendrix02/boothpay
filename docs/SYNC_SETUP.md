@@ -1,11 +1,11 @@
-# Connect ContactSheet to a Google Sheet (about 10 minutes)
+# Connect BoothPay to a Google Sheet (about 10 minutes)
 
 Do this once, on a laptop, with the Google account that should own the sales records
 (the moderator's or the club's account).
 
 ## 1. Make the Sheet
 1. Go to sheets.google.com → **Blank spreadsheet**.
-2. Name it, for example `ContactSheet Sales 2026`.
+2. Name it, for example `BoothPay Sales 2026`.
 
 ## 2. Add the script
 1. In the Sheet: **Extensions → Apps Script**.
@@ -26,11 +26,11 @@ Do this once, on a laptop, with the Google account that should own the sales rec
 4. Click **Deploy**. Google asks you to authorize: pick your account → **Advanced → Go to (project name)** → **Allow**.
 5. Copy the **Web app URL** (it ends in `/exec`).
 
-## 4. Connect ContactSheet
-1. Open ContactSheet → **I'm the moderator** → **Sync & phones** (top right).
+## 4. Connect BoothPay
+1. Open BoothPay → **I'm the moderator** → **Sync & phones** (top right).
 2. Paste the Web app URL and type the same sync key → **Save & test**.
    You should see "Connected to …". Tabs named Sales, SaleItems, Tickets, Voids, Customers, CloseOuts, Moves, Expenses and Setup appear in the Sheet as data arrives.
-3. Tap **Download setup file** and send it to every booth phone. On each phone: open ContactSheet →
+3. Tap **Download setup file** and send it to every booth phone. On each phone: open BoothPay →
    **Got a setup file? Load it**. The file carries the Sheet connection, so you only do this once per phone.
 
 ## How it works after that
@@ -42,7 +42,7 @@ Do this once, on a laptop, with the Google account that should own the sales rec
 - Rows are never edited or deleted. An undone sale adds a row to the **Voids** tab.
 - Money columns ending in `_c` are in centavos (5000 = ₱50). `total_php` is the same amount in pesos.
 
-## Updating the script (when ContactSheet gets a new Code.gs)
+## Updating the script (when BoothPay gets a new Code.gs)
 1. Open your Sheet → **Extensions → Apps Script**.
 2. Copy the line with your `SYNC_KEY` somewhere safe first.
 3. Replace everything in `Code.gs` with the new `gas/Code.gs`, then put your own `SYNC_KEY` line back.
@@ -56,7 +56,7 @@ and are sent once you do. Sales keep syncing either way.
 ## If something goes wrong
 | You see | Do this |
 |---|---|
-| "Wrong sync key" | The key in ContactSheet and in Code.gs must match exactly. |
+| "Wrong sync key" | The key in BoothPay and in Code.gs must match exactly. |
 | "Set your own SYNC_KEY…" | You did not change `CHANGE-ME`, or it is shorter than 8 characters. |
 | "The Sheet link did not answer" | Check that the URL ends in `/exec` and that access is **Anyone**. |
 | You edited Code.gs but nothing changed | **Deploy → Manage deployments → edit (pencil) → Version: New version → Deploy.** The URL stays the same. |

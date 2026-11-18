@@ -149,7 +149,7 @@ CS.views.upload = (function () {
       <button class="link" data-up-back>${icon('back')} Choose a different file</button>
       <div class="view-head"><div><h2 class="h1">${pms ? 'Match the columns' : 'Check the booth file'}</h2>
         <p class="sub">${icon('file')} ${esc(st.file)} · ${st.data.length} rows${pms ? ` · goes to ${esc(b ? b.name : st.booth)}` : ''}</p></div></div>
-      ${pms ? `<p class="sub">Tell ContactSheet what each column means. We made a guess, so just check it. <b>Amount paid</b> is the only one you must pick.</p>
+      ${pms ? `<p class="sub">Tell BoothPay what each column means. We made a guess, so just check it. <b>Amount paid</b> is the only one you must pick.</p>
         <div class="map-grid">${FIELDS.map(([k, label]) => `<label class="field"><span>${label}${k === 'amount' ? ' *' : ''}</span>
           <select class="input" data-map="${k}"><option value="">Not in this file</option>${st.headers.map((h, i) => `<option value="${i}" ${String(st.map[k]) === String(i) ? 'selected' : ''}>${esc(h || 'Column ' + (i + 1))}</option>`).join('')}</select></label>`).join('')}</div>` : ''}
       <div class="stats">

@@ -1,6 +1,6 @@
 {
-  "name": "ContactSheet · SPCIS Media Arts Club",
-  "short_name": "ContactSheet",
+  "name": "BoothPay · SPCIS Media Arts Club",
+  "short_name": "BoothPay",
   "description": "Booth sales that work offline and sync to a Google Sheet.",
   "start_url": "./index.html",
   "scope": "./",
