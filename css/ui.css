@@ -1,6 +1,9 @@
 /* ContactSheet shared components + sign-in + register. Uses tokens.css only. */
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
+/* no visible scroll bars anywhere (scrolling still works by touch, wheel and trackpad) */
+* { scrollbar-width: none; -ms-overflow-style: none; }
+*::-webkit-scrollbar { display: none; width: 0; height: 0; }
 body { margin: 0; background: var(--paper); color: var(--ink); font: 400 var(--t-16)/1.45 var(--f-body); -webkit-tap-highlight-color: transparent; }
 button, input, select, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; background: none; border: 0; padding: 0; }

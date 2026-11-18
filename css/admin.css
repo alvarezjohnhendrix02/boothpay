@@ -125,3 +125,4 @@ fieldset.field { border: 0; padding: 0; margin: 0; }
 .team { display: grid; gap: var(--s-2); }
 .team-row { display: grid; grid-template-columns: 1.4fr 1.2fr 110px 96px 44px; gap: var(--s-2); align-items: end; }
 @media (max-width: 560px) { .team-row { grid-template-columns: 1fr 1fr 44px; padding-bottom: var(--s-2); border-bottom: var(--hair); } .team-row .icon-btn { grid-row: 1; grid-column: 3; } }
+.export-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--s-2); }

@@ -157,11 +157,7 @@ CS.views.reports = (function () {
     const scope = [f.event === '*' ? 'All events' : evName(f.event), f.booth === '*' ? 'all booths' : boothOf(f.booth).name, f.day === '*' ? 'all days' : dayLabel(f.day)].join(' · ');
 
     el.innerHTML = `
-      <div class="view-head"><div><h2 class="h1">Reports</h2><p class="sub">Booth sales and PMS uploads, together in one summary.</p></div>
-        <div class="btn-row no-print">
-          <button class="btn ghost sm" data-r-csv ${rows.length ? '' : 'disabled'}>${icon('download')} All sales (CSV)</button>
-          <button class="btn ghost sm" data-r-sum ${rows.length ? '' : 'disabled'}>${icon('download')} Summary (CSV)</button>
-          <button class="btn primary sm" data-r-print ${rows.length ? '' : 'disabled'}>${icon('printer')} Print / PDF</button></div></div>
+      <div class="view-head"><div><h2 class="h1">Reports</h2><p class="sub">Booth sales and PMS uploads, together in one summary.</p></div></div>
       <div class="filters no-print">
         <label class="field"><span>Event</span><select class="input" data-f="event">${opt('*', f.event, 'All events')}${evs.map(e => opt(e.event_id, f.event, e.name)).join('')}${evIds.includes('') ? opt('', f.event, 'No event') : ''}</select></label>
         <label class="field"><span>Booth</span><select class="input" data-f="booth">${opt('*', f.booth, 'All booths')}${boothCodes.map(c => opt(c, f.booth, boothOf(c).name)).join('')}</select></label>
@@ -194,7 +190,14 @@ CS.views.reports = (function () {
           <div class="table-wrap"><table class="table"><thead><tr><th>Item</th><th>Booth</th><th class="r">Sold</th><th class="r">Sales</th></tr></thead>
           <tbody>${top.map(i => `<tr><td>${esc(i.name)}</td><td><span class="mini">${badge(boothOf(i.booth), 'sm')}${esc(boothOf(i.booth).name)}</span></td>
             <td class="r num">${i.qty}</td><td class="r num"><b>${money(i.total_c)}</b></td></tr>`).join('')}</tbody></table></div></section>
-      </div>`}`;
+      </div>
+      <section class="panel no-print"><p class="h3">${icon('download')} Save or print this report</p>
+        <p class="sub">Uses the filters above: ${esc(scope)}.</p>
+        <div class="export-row">
+          <button class="btn ghost" data-r-csv>${icon('download')} All sales (CSV)</button>
+          <button class="btn ghost" data-r-sum>${icon('download')} Summary (CSV)</button>
+          <button class="btn primary" data-r-print>${icon('printer')} Print / PDF</button></div>
+      </section>`}`;
   }
 
   function exportAll() {
