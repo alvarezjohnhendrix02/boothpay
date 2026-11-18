@@ -261,6 +261,15 @@ dialog.sheet::backdrop { background: rgb(24 23 26 / .5); }
 .mod-btn .badge { background: var(--on-pastel); color: var(--lilac); }
 .mod-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #A988E6; }
 
+/* demo mode */
+.demo-bar { position: sticky; top: 0; z-index: 7; display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2); padding: var(--s-2) var(--s-4); background: var(--lemon); color: var(--on-pastel); font-size: var(--t-14); }
+.demo-bar > span { flex: 1 1 220px; }
+.demo-bar .btn.ghost { background: transparent; border-color: var(--on-pastel); color: var(--on-pastel); min-height: 36px; }
+.demo-bar .btn.primary { background: var(--on-pastel); color: #FFF7EA; min-height: 36px; }
+.demo-cta { display: flex; align-items: center; gap: var(--s-3); margin-top: var(--s-3); padding: var(--s-3) var(--s-4); border-radius: var(--r-2); border: 2px dashed var(--lemon); background: var(--amber-wash); color: var(--ink); text-decoration: none; }
+.demo-cta > span { display: grid; }
+.demo-bar ~ .topbar { top: 0; }
+
 /* install + update */
 .install { display: flex; align-items: center; gap: var(--s-3); width: 100%; padding: var(--s-4); text-align: left; border-radius: var(--r-2); background: var(--amber-wash); border: 2px dashed var(--lemon); }
 .install > span { display: grid; gap: 2px; }

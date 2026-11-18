@@ -45,7 +45,8 @@
               : `<div class="people">${list.map(card).join('')}</div>`}` : ''}`}
       ${admin ? `<div class="or-line"><span>or</span></div>
         <button class="mod-btn" data-person="${admin.staff_id}">${badge(MOD, 'lg')}<span><b>I'm the moderator</b><span class="sub">Events, booths, people, uploads and reports</span></span>${icon('next', 'go')}</button>` : ''}
-      <p class="center" style="margin-top:var(--s-4)"><button class="link" data-load-setup>${icon('file')} Got a setup file from the moderator? Load it</button></p>`;
+      ${S.demo ? '' : `<p class="center" style="margin-top:var(--s-4)"><button class="link" data-load-setup>${icon('file')} Got a setup file from the moderator? Load it</button></p>
+        <a class="demo-cta" href="index.html?demo">${icon('star')}<span><b>Try the demo</b><span class="sub">A sample event with booths, people and sales. Safe to play: it never touches real data.</span></span></a>`}`;
     const f = $('#find'); if (f && query) { f.focus(); f.setSelectionRange(query.length, query.length); }
   }
 

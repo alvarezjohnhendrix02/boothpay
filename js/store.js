@@ -1,6 +1,8 @@
 /* Local cache + outbox. Every sale is saved here first; P2 sync sends the outbox. */
 CS.store = (function () {
-  const U = CS.util, P = 'cs.v1.';
+  // Demo mode (opened with ?demo, kept for this browser tab) uses its own storage, so it never touches real data or the Sheet.
+  const DEMO = (() => { try { if (/[?&]demo(=|&|$)/.test(location.search)) sessionStorage.setItem('boothpay.demo', '1'); return sessionStorage.getItem('boothpay.demo') === '1'; } catch (e) { return false; } })();
+  const U = CS.util, P = DEMO ? 'cs.demo.' : 'cs.v1.';
   function get(k, d) { try { const v = localStorage.getItem(P + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } }
   function set(k, v) { try { localStorage.setItem(P + k, JSON.stringify(v)); return true; } catch (e) { return false; } }
   function del(k) { try { localStorage.removeItem(P + k); } catch (e) { /* storage blocked */ } }
@@ -159,6 +161,7 @@ CS.store = (function () {
     events, saveEvents, activeEvent, setActiveEvent, boothsForSale,
     session, deviceBooth, setDeviceBooth, login, logout, uname, staffList, staffFor, canWorkAt, findUser, pinOk, setStaffPin, isDefault, isDefaultPin,
     eventBlock, ticketFormat, peekTicketNo, recordSale, salesToday, allSales, voidSale, outboxCount, recordCloseout, closeoutsToday, allCloseouts,
-    imports, saveImports, exportSetup, importSetup,
+    imports, saveImports, exportSetup, importSetup, demo: DEMO,
+    wipe: () => keys('').forEach(del), // demo reset only
   };
 })();

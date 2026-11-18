@@ -7,7 +7,7 @@ CS.sync = (function () {
   const st = { busy: false, err: '', delay: EVERY, timer: 0 };
 
   const cfg = () => S.get('sync.cfg', null);
-  const configured = () => { const c = cfg(); return !!(c && c.url && c.key); };
+  const configured = () => { const c = cfg(); return !S.demo && !!(c && c.url && c.key); };
   function setCfg(c) { S.set('sync.cfg', c && c.url ? { url: c.url.trim(), key: c.key.trim() } : null); st.err = ''; st.delay = EVERY; }
   function device() {
     let d = S.get('device.id', '');
@@ -27,6 +27,7 @@ CS.sync = (function () {
   }
 
   async function call(op, extra) {
+    if (S.demo) throw new Error('Demo mode never connects to a Google Sheet');
     const c = cfg();
     if (!c || !c.url) throw new Error('Not connected to a Google Sheet');
     if (!navigator.onLine) throw new Error('No internet');
@@ -139,6 +140,7 @@ CS.sync = (function () {
   // One line for the top bar, e.g. "Synced" or "3 waiting · No internet".
   function label() {
     const s = status();
+    if (S.demo) return { text: 'Demo · not synced', ok: true };
     if (!s.configured) return { text: s.unsent ? `${s.unsent} saved on this phone` : 'Ready to sell', ok: !s.unsent };
     if (s.busy) return { text: 'Syncing…', ok: false };
     if (s.oldSheet && !s.err) return { text: 'Some records waiting · update Sheet', ok: false };
