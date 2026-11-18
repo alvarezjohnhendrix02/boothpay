@@ -26,7 +26,7 @@ CS.views.booths = (function () {
             <p class="sub">${esc(b.hint || '')}</p>
             ${stockLine(b.code)}
             <p class="sub">${n} item${n === 1 ? '' : 's'} · tickets look like <b class="mono">${esc(S.ticketFormat(b, 1))}</b> · ${(t => `${t.filter(x => x.role === 'manager').length} manager(s) · ${t.filter(x => x.role === 'cashier').length} cashier(s)`)(S.staffList(b.code))}${S.isDefaultPin(b.code) ? ' · <span class="bad-text">still using PIN 1234</span>' : ''}</p></div></div>
-          <div class="card-actions"><button class="btn ghost sm" data-b-edit="${b.code}">${icon('edit')} Edit booth & items</button></div></li>`;
+          <button class="icon-btn edit-btn" data-b-edit="${b.code}" aria-label="Edit ${esc(b.name)}" title="Edit booth & items">${icon('edit')}</button></li>`;
       }).join('')}</ul>
       <section class="panel">
         <p class="h3">${icon('key')} Moderator account</p>
