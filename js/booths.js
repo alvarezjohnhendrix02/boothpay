@@ -6,6 +6,13 @@ CS.views.booths = (function () {
   const clone = o => JSON.parse(JSON.stringify(o));
 
   function render(el) {
+    if (!S.events().length) {
+      el.innerHTML = `<div class="view-head"><div><h2 class="h1">Booths</h2><p class="sub">Each booth has its own items, prices, team and stock.</p></div></div>
+        <div class="empty big">${icon('calendar')}<p class="h3">Set up an event first</p>
+          <p>Booths sell at an event, so create the event (name, dates, venue) before setting up booths.</p>
+          <button class="btn primary" data-view="events">${icon('plus')} Create an event</button></div>`;
+      return;
+    }
     const c = S.catalog();
     el.innerHTML = `
       <div class="view-head"><div><h2 class="h1">Booths</h2>
@@ -37,7 +44,7 @@ CS.views.booths = (function () {
 
   function ticketPreview() {
     const f = document.getElementById('boothForm'), el = document.getElementById('tkPreview'); if (!f || !el) return;
-    const b = { code: draft.code || 'T', prefix: f.prefix.value || (draft.name || 'T')[0].toUpperCase(), ticket_digits: f.ticket_digits.value, ticket_start: f.ticket_start.value };
+    const b = { code: draft.code || 'T', prefix: f.prefix.value || (draft.name || 'T')[0].toUpperCase(), ticket_start: f.ticket_start.value };
     const reset = { day: 'every morning', event: 'when a new event starts', never: 'never (keeps counting)' }[f.ticket_reset.value];
     el.innerHTML = `Tickets will look like <b class="mono">${esc(S.ticketFormat(b, 1))}</b>, <b class="mono">${esc(S.ticketFormat(b, 2))}</b>, <b class="mono">${esc(S.ticketFormat(b, 3))}</b>… · back to the start ${reset}.`;
   }
@@ -53,11 +60,10 @@ CS.views.booths = (function () {
         <fieldset class="field"><span>Icon</span><div class="icon-pick">${BOOTH_ICONS.map(n => `
           <label><input type="radio" name="icon" value="${n}" ${b.icon === n ? 'checked' : ''}><i>${icon(n)}</i><span class="sr">${n}</span></label>`).join('')}</div></fieldset>
         <fieldset class="field tickets-set"><span>${icon('ticket')} Ticket numbers</span>
-          <small>For items that get a ticket (photos, poems, drawings). The customer is called by this number.</small>
+          <small>For items that get a ticket (photos, poems, drawings). The customer is called by this number. Tickets are at most 10 characters, like DOOD-12345.</small>
           <div class="ticket-grid">
             <label class="mini-field"><span>Prefix</span><input class="input" name="prefix" value="${esc(b.prefix)}" maxlength="4" placeholder="P" autocomplete="off"></label>
-            <label class="mini-field"><span>Number length</span><select class="input" name="ticket_digits">${[2, 3, 4].map(n => `<option value="${n}" ${String(b.ticket_digits || 3) === String(n) ? 'selected' : ''}>${n} digits (${'0'.repeat(n - 1)}1)</option>`).join('')}</select></label>
-            <label class="mini-field"><span>Start at</span><input class="input num" name="ticket_start" value="${esc(b.ticket_start || 1)}" inputmode="numeric" maxlength="4" autocomplete="off"></label>
+            <label class="mini-field"><span>Start at</span><input class="input num" name="ticket_start" value="${esc(b.ticket_start || 1)}" inputmode="numeric" maxlength="5" autocomplete="off"></label>
             <label class="mini-field"><span>Counting restarts</span><select class="input" name="ticket_reset">${[['day', 'Every day'], ['event', 'Every event'], ['never', 'Never']].map(([v, l]) => `<option value="${v}" ${(b.ticket_reset || 'day') === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
           </div>
           <p class="ticket-preview" id="tkPreview"></p>
@@ -99,7 +105,7 @@ CS.views.booths = (function () {
     const f = document.getElementById('boothForm'); if (!f) return;
     const fd = new FormData(f);
     Object.assign(draft, { name: fd.get('name').trim(), hint: fd.get('hint').trim(), color: fd.get('color') || draft.color, icon: fd.get('icon') || draft.icon,
-      prefix: fd.get('prefix').trim().toUpperCase().replace(/[^A-Z0-9]/g, ''), ticket_digits: fd.get('ticket_digits'), ticket_start: fd.get('ticket_start').trim(), ticket_reset: fd.get('ticket_reset'), active: fd.get('active') === 'on' });
+      prefix: fd.get('prefix').trim().toUpperCase().replace(/[^A-Z0-9]/g, ''), ticket_start: fd.get('ticket_start').trim(), ticket_reset: fd.get('ticket_reset'), active: fd.get('active') === 'on' });
     CS.team.read(draft.team);
     f.querySelectorAll('.prod-row').forEach(r => {
       const p = draft.products[+r.dataset.i], v = k => r.querySelector(`[data-f="${k}"]`).value;
@@ -132,7 +138,7 @@ CS.views.booths = (function () {
     const c = clone(S.catalog());
     const code = b.code || makeCode(b.name, c.booths.map(x => x.code));
     const rec = { code, name: b.name, hint: b.hint, color: b.color, icon: b.icon, prefix: b.prefix || code[0], active: b.active,
-      ticket_digits: +b.ticket_digits || 3, ticket_start: Math.max(0, parseInt(b.ticket_start, 10) || 1), ticket_reset: b.ticket_reset || 'day' };
+      ticket_start: Math.max(0, parseInt(b.ticket_start, 10) || 1), ticket_reset: b.ticket_reset || 'day' };
     const i = c.booths.findIndex(x => x.code === code);
     if (i >= 0) c.booths[i] = { ...c.booths[i], ...rec }; else c.booths.push(rec);
 
@@ -204,7 +210,7 @@ CS.views.booths = (function () {
   function input(e) {
     const t = e.target;
     if (t.name === 'prefix') { const v = t.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4); if (v !== t.value) t.value = v; }
-    if (t.name === 'ticket_start') t.value = t.value.replace(/\D/g, '');
+    if (t.name === 'ticket_start') t.value = t.value.replace(/\D/g, '').slice(0, 5);
     if (t.closest && t.closest('.tickets-set')) ticketPreview();
     if (t.id === 'adminUser' || t.dataset.tf === 'username') { const v = S.uname(t.value); if (v !== t.value) t.value = v; }
     if (t.id === 'adminPin' || t.dataset.tf === 'pin' || ['low', 'add'].includes(t.dataset.sf) || /^q\d$/.test(t.dataset.f || '')) t.value = t.value.replace(/\D/g, '');

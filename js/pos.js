@@ -40,6 +40,13 @@
 
   /* ---------- render ---------- */
   function render() {
+    const blocked = S.eventBlock(sess.booth);
+    if (blocked) { // the moderator stopped the event: selling pauses, Today / Close day still work
+      $('#grid').innerHTML = `<div class="empty" style="grid-column:1/-1">${icon('calendar')}<p class="h3">Selling is paused</p><p>${esc(blocked)}</p></div>`;
+      $('#cartbar').hidden = true; $$('.cart-side .cart-body').forEach(e => { e.innerHTML = ''; }); chip();
+      if (!$('#tab-today').hidden) renderToday();
+      return;
+    }
     const hand = CS.stock.onHand(sess.booth);
     $('#grid').innerHTML = items.length ? items.map(p => {
       const q = cart[p.sku] || 0, left = CS.stock.canMake(p, hand), lowAt = left != null && (p.uses || []).some(u => { const it = CS.stock.byId(u.stock_id); return it && CS.stock.isLow(it, hand[u.stock_id] || 0); });
@@ -68,7 +75,7 @@
     chip();
     if (e.detail.stock && !$('#sheet').open) { render(); if (!$('#tab-stock').hidden) CS.stock.render($('#tab-stock'), sess); }
     // New prices/items from the moderator: reload only between customers.
-    if (e.detail.setupChanged && !count() && !$('#sheet').open) location.reload();
+    if (e.detail.setupChanged && (!count() || S.eventBlock(sess.booth)) && !$('#sheet').open) location.reload();
   });
 
   function openTab(name, as) {
@@ -134,7 +141,7 @@
 
   function confirmPay() {
     const ls = lines(), t = total();
-    if (!ls.length || !canConfirm() || !cust) return;
+    if (!ls.length || !canConfirm() || !cust || S.eventBlock(sess.booth)) return;
     const customer = cust ? CS.customer.commit(cust) : null;
     const r = S.recordSale({ booth: sess.booth, staff: sess, lines: ls, total: t, pay, customer });
     cust = null; S.set(custKey, null);
@@ -182,6 +189,7 @@
     else if ('cust' in d) CS.customer.open(cust, onCust);
     else if ('openCart' in d) showCart();
     else if ('charge' in d && !cust) CS.customer.open(null, onCust);
+    else if ('charge' in d && S.eventBlock(sess.booth)) { closeSheet(); render(); }
     else if ('charge' in d) { pay = { method: 'cash', tendered: 0, ref: '', total: total() }; showPay(); }
     else if (d.method) { pay.method = d.method; showPay(); }
     else if (d.add) { pay.tendered += +d.add; showPay(); }

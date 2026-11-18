@@ -48,6 +48,13 @@ CS.store = (function () {
   const pinOk = (s, pin) => s.hash_v === 2 ? s.pin_hash === U.hash(pin + ':' + s.staff_id) : s.pin_hash === U.hash(pin + s.booth);
   function setStaffPin(s, pin) { s.pin_hash = U.hash(pin + ':' + s.staff_id); s.hash_v = 2; return s; }
   const isDefault = s => pinOk(s, '1234');
+  // Booths only work during a running event (and only if the event includes them). '' = OK, otherwise why not.
+  function eventBlock(boothCode) {
+    const ev = activeEvent();
+    if (!ev) return 'No event is running yet. Booths can sign in once the moderator starts an event.';
+    if (ev.booths && ev.booths.length && !ev.booths.includes(boothCode)) return `Your booth is not part of today's event (${ev.name}). Ask your moderator.`;
+    return '';
+  }
   const isDefaultPin = boothCode => staffList(boothCode).some(isDefault);
 
   function login(username, pin) {
@@ -60,10 +67,11 @@ CS.store = (function () {
   const logout = () => del('session');
 
   /* ---------- sales ---------- */
-  // Ticket numbers per booth: prefix, digits (2–4), start number, and when counting restarts (day | event | never).
+  // Ticket numbers per booth: prefix + start number, restarting every day, event, or never.
+  // Always at most 10 characters: prefix (≤4) + "-" + number (shown with at least 3 digits, at most 5).
   function ticketFormat(b, n) {
-    const num = Math.max(0, parseInt(b.ticket_start, 10) || 1) + n - 1;
-    return `${b.prefix || (b.code || 'T')[0]}-${String(num).padStart(parseInt(b.ticket_digits, 10) || 3, '0')}`;
+    const num = (Math.max(0, parseInt(b.ticket_start, 10) || 1) + n - 1) % 100000;
+    return `${String(b.prefix || (b.code || 'T')[0]).slice(0, 4)}-${String(num).padStart(3, '0')}`;
   }
   function ticketKey(b) {
     const r = b.ticket_reset || 'day', ev = activeEvent();
@@ -146,7 +154,7 @@ CS.store = (function () {
     get, set, push, catalog, saveCatalog, booth, productName,
     events, saveEvents, activeEvent, setActiveEvent, boothsForSale,
     session, deviceBooth, setDeviceBooth, login, logout, uname, staffList, findUser, pinOk, setStaffPin, isDefault, isDefaultPin,
-    ticketFormat, peekTicketNo, recordSale, salesToday, allSales, voidSale, outboxCount, recordCloseout, closeoutsToday, allCloseouts,
+    eventBlock, ticketFormat, peekTicketNo, recordSale, salesToday, allSales, voidSale, outboxCount, recordCloseout, closeoutsToday, allCloseouts,
     imports, saveImports, exportSetup, importSetup,
   };
 })();

@@ -15,7 +15,7 @@ CS.views.events = (function () {
         <p class="sub">An event is a school fair, intramurals, or any day booths sell. New sales are linked to the running event.</p></div>
         <button class="btn primary" data-ev-new>${icon('plus')} New event</button></div>
       ${act ? `<div class="event-now">${icon('calendar')}<span>Running now: <b>${esc(act.name)}</b>. Booth phones record sales under this event.</span></div>`
-        : `<div class="event-now none">${icon('calendar')}<span>No event is running. Make one the running event so sales get grouped.</span></div>`}
+        : `<div class="event-now none">${icon('calendar')}<span><b>No event is running, so booths cannot sign in or sell.</b> ${S.events().length ? 'Make one the running event below.' : 'Create the first event to get started.'}</span></div>`}
       ${evs.length ? `<ul class="cards">${evs.map(e => {
         const live = act && act.event_id === e.event_id;
         return `<li class="card${live ? ' live' : ''}">
@@ -26,7 +26,7 @@ CS.views.events = (function () {
           </div>
           <div class="card-num"><p class="label">Sales</p><p class="h2 num">${money(totals[e.event_id] || 0)}</p></div>
           <div class="card-actions">
-            ${live ? '<button class="btn ghost sm" data-ev-stop>Stop running</button>' : `<button class="btn go sm" data-ev-run="${e.event_id}">${icon('check')} Make it the running event</button>`}
+            ${live ? '<button class="btn ghost sm" data-ev-stop>Stop running (pauses all booths)</button>' : `<button class="btn go sm" data-ev-run="${e.event_id}">${icon('check')} Make it the running event</button>`}
             <button class="btn ghost sm" data-ev-edit="${e.event_id}">${icon('edit')} Edit</button>
             <button class="icon-btn" data-ev-del="${e.event_id}" aria-label="Delete ${esc(e.name)}">${icon('trash')}</button>
           </div></li>`;
@@ -96,7 +96,7 @@ CS.admin = (function () {
   const sess = S.session();
   if (!sess || sess.role !== 'admin') { location.replace('index.html'); return {}; }
   const TABS = [['reports', 'chart', 'Reports'], ['events', 'calendar', 'Events'], ['booths', 'store', 'Booths'], ['expenses', 'cash', 'Expenses'], ['upload', 'upload', 'Upload PMS']];
-  let current = TABS.some(t => t[0] === location.hash.slice(1)) ? location.hash.slice(1) : 'reports';
+  let current = TABS.some(t => t[0] === location.hash.slice(1)) ? location.hash.slice(1) : S.events().length ? 'reports' : 'events';
 
   function go(v) {
     if (v !== current) window.scrollTo(0, 0);

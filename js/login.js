@@ -12,7 +12,7 @@
     el.className = 'event-now' + (ev ? '' : ' none');
     el.innerHTML = icon('calendar') + (ev
       ? `<span>Today: <b>${esc(ev.name)}</b>${ev.start ? ' · ' + dayLabel(ev.start) : ''}</span>`
-      : '<span>No event is running yet. You can still sell.</span>');
+      : '<span>No event is running yet. Booths can sign in once the moderator starts one.</span>');
   }
 
   function show() {
@@ -61,6 +61,9 @@
     drawDots();
     if (pin.length < 4) return;
     const s = S.login($('#user').value, pin);
+    if (s && s.role !== 'admin' && S.eventBlock(s.booth)) {
+      S.logout(); $('#err').textContent = S.eventBlock(s.booth); pin = ''; drawDots(); return;
+    }
     if (s) return location.replace(s.role === 'admin' ? 'admin.html' : 'pos.html');
     const tries = CS.pin.triesLeft('signin');
     $('#err').textContent = CS.pin.lockLeft('signin') ? '' : tries <= 3 ? `Username or PIN is not right. ${tries} ${tries === 1 ? 'try' : 'tries'} left before a short lock.` : 'Username or PIN is not right. Try again.';
