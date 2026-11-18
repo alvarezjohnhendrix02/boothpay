@@ -18,7 +18,7 @@ CS.views.booths = (function () {
             <p class="h3">${esc(b.name)} ${b.active === false ? '<span class="pill">Hidden</span>' : ''}</p>
             <p class="sub">${esc(b.hint || '')}</p>
             ${stockLine(b.code)}
-            <p class="sub">${n} item${n === 1 ? '' : 's'} · tickets start with <b class="mono">${esc(b.prefix)}-</b> · ${(t => `${t.filter(x => x.role === 'manager').length} manager(s) · ${t.filter(x => x.role === 'cashier').length} cashier(s)`)(S.staffList(b.code))}${S.isDefaultPin(b.code) ? ' · <span class="bad-text">still using PIN 1234</span>' : ''}</p></div></div>
+            <p class="sub">${n} item${n === 1 ? '' : 's'} · tickets look like <b class="mono">${esc(S.ticketFormat(b, 1))}</b> · ${(t => `${t.filter(x => x.role === 'manager').length} manager(s) · ${t.filter(x => x.role === 'cashier').length} cashier(s)`)(S.staffList(b.code))}${S.isDefaultPin(b.code) ? ' · <span class="bad-text">still using PIN 1234</span>' : ''}</p></div></div>
           <div class="card-actions"><button class="btn ghost sm" data-b-edit="${b.code}">${icon('edit')} Edit booth & items</button></div></li>`;
       }).join('')}</ul>
       <section class="panel">
@@ -35,6 +35,13 @@ CS.views.booths = (function () {
     return list.length ? `<div class="badges">${list.map(s => { const n = hand[s.stock_id] || 0; return `<span class="pill ${n <= 0 || CS.stock.isLow(s, n) ? 'bad' : 'ok'}">${esc(s.name)}: ${n} ${esc(s.unit)}</span>`; }).join('')}</div>` : '';
   }
 
+  function ticketPreview() {
+    const f = document.getElementById('boothForm'), el = document.getElementById('tkPreview'); if (!f || !el) return;
+    const b = { code: draft.code || 'T', prefix: f.prefix.value || (draft.name || 'T')[0].toUpperCase(), ticket_digits: f.ticket_digits.value, ticket_start: f.ticket_start.value };
+    const reset = { day: 'every morning', event: 'when a new event starts', never: 'never (keeps counting)' }[f.ticket_reset.value];
+    el.innerHTML = `Tickets will look like <b class="mono">${esc(S.ticketFormat(b, 1))}</b>, <b class="mono">${esc(S.ticketFormat(b, 2))}</b>, <b class="mono">${esc(S.ticketFormat(b, 3))}</b>… · back to the start ${reset}.`;
+  }
+
   function form() {
     const b = draft, hand = b.code ? CS.stock.onHand(b.code) : {};
     openSheet(`${head(b.isNew ? 'New booth' : 'Edit ' + esc(b.name))}
@@ -45,10 +52,16 @@ CS.views.booths = (function () {
           <label><input type="radio" name="color" value="${c}" ${b.color === c ? 'checked' : ''}><i style="background:${c}"></i><span class="sr">${c}</span></label>`).join('')}</div></fieldset>
         <fieldset class="field"><span>Icon</span><div class="icon-pick">${BOOTH_ICONS.map(n => `
           <label><input type="radio" name="icon" value="${n}" ${b.icon === n ? 'checked' : ''}><i>${icon(n)}</i><span class="sr">${n}</span></label>`).join('')}</div></fieldset>
-        <div class="field-row">
-          <label class="field"><span>Ticket letter</span><input name="prefix" value="${esc(b.prefix)}" maxlength="2" placeholder="P"><small>Tickets look like ${esc(b.prefix || 'P')}-001</small></label>
-          <span></span>
-        </div>
+        <fieldset class="field tickets-set"><span>${icon('ticket')} Ticket numbers</span>
+          <small>For items that get a ticket (photos, poems, drawings). The customer is called by this number.</small>
+          <div class="ticket-grid">
+            <label class="mini-field"><span>Prefix</span><input class="input" name="prefix" value="${esc(b.prefix)}" maxlength="4" placeholder="P" autocomplete="off"></label>
+            <label class="mini-field"><span>Number length</span><select class="input" name="ticket_digits">${[2, 3, 4].map(n => `<option value="${n}" ${String(b.ticket_digits || 3) === String(n) ? 'selected' : ''}>${n} digits (${'0'.repeat(n - 1)}1)</option>`).join('')}</select></label>
+            <label class="mini-field"><span>Start at</span><input class="input num" name="ticket_start" value="${esc(b.ticket_start || 1)}" inputmode="numeric" maxlength="4" autocomplete="off"></label>
+            <label class="mini-field"><span>Counting restarts</span><select class="input" name="ticket_reset">${[['day', 'Every day'], ['event', 'Every event'], ['never', 'Never']].map(([v, l]) => `<option value="${v}" ${(b.ticket_reset || 'day') === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
+          </div>
+          <p class="ticket-preview" id="tkPreview"></p>
+        </fieldset>
         ${CS.team.html(b.team)}
         <div><p class="h3">Stock to track <small class="sub">(optional)</small></p>
           <p class="sub">Supplies this booth uses up, like photo paper or pins. Each sale takes them out by itself.</p></div>
@@ -78,6 +91,7 @@ CS.views.booths = (function () {
         <p class="err" id="bErr" role="alert"></p>
         <button class="btn primary wide" type="submit">${icon('check')} Save booth</button>
       </form>`);
+    ticketPreview();
   }
 
   // Copy what the user typed back into the draft, so re-rendering keeps it.
@@ -85,7 +99,7 @@ CS.views.booths = (function () {
     const f = document.getElementById('boothForm'); if (!f) return;
     const fd = new FormData(f);
     Object.assign(draft, { name: fd.get('name').trim(), hint: fd.get('hint').trim(), color: fd.get('color') || draft.color, icon: fd.get('icon') || draft.icon,
-      prefix: fd.get('prefix').trim().toUpperCase(), active: fd.get('active') === 'on' });
+      prefix: fd.get('prefix').trim().toUpperCase().replace(/[^A-Z0-9]/g, ''), ticket_digits: fd.get('ticket_digits'), ticket_start: fd.get('ticket_start').trim(), ticket_reset: fd.get('ticket_reset'), active: fd.get('active') === 'on' });
     CS.team.read(draft.team);
     f.querySelectorAll('.prod-row').forEach(r => {
       const p = draft.products[+r.dataset.i], v = k => r.querySelector(`[data-f="${k}"]`).value;
@@ -117,7 +131,8 @@ CS.views.booths = (function () {
 
     const c = clone(S.catalog());
     const code = b.code || makeCode(b.name, c.booths.map(x => x.code));
-    const rec = { code, name: b.name, hint: b.hint, color: b.color, icon: b.icon, prefix: b.prefix || code[0], active: b.active };
+    const rec = { code, name: b.name, hint: b.hint, color: b.color, icon: b.icon, prefix: b.prefix || code[0], active: b.active,
+      ticket_digits: +b.ticket_digits || 3, ticket_start: Math.max(0, parseInt(b.ticket_start, 10) || 1), ticket_reset: b.ticket_reset || 'day' };
     const i = c.booths.findIndex(x => x.code === code);
     if (i >= 0) c.booths[i] = { ...c.booths[i], ...rec }; else c.booths.push(rec);
 
@@ -188,6 +203,9 @@ CS.views.booths = (function () {
   function submit(e) { if (e.target.id === 'boothForm') { e.preventDefault(); save(); } }
   function input(e) {
     const t = e.target;
+    if (t.name === 'prefix') { const v = t.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4); if (v !== t.value) t.value = v; }
+    if (t.name === 'ticket_start') t.value = t.value.replace(/\D/g, '');
+    if (t.closest && t.closest('.tickets-set')) ticketPreview();
     if (t.id === 'adminUser' || t.dataset.tf === 'username') { const v = S.uname(t.value); if (v !== t.value) t.value = v; }
     if (t.id === 'adminPin' || t.dataset.tf === 'pin' || ['low', 'add'].includes(t.dataset.sf) || /^q\d$/.test(t.dataset.f || '')) t.value = t.value.replace(/\D/g, '');
     if (t.dataset.sf === 'name') { // keep the "Uses from stock" choices in step with the name being typed
@@ -199,6 +217,7 @@ CS.views.booths = (function () {
   // After typing a new person's name, suggest a username (e.g. "juan.photo") if the box is still empty.
   function change(e) {
     const t = e.target;
+    if (t.closest && t.closest('.tickets-set')) ticketPreview();
     if (t.dataset.tf !== 'name') return;
     const row = t.closest('.team-row'), u = row.querySelector('[data-tf="username"]');
     if (u.value || !t.value.trim()) return;

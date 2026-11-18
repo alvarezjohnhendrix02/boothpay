@@ -60,12 +60,21 @@ CS.store = (function () {
   const logout = () => del('session');
 
   /* ---------- sales ---------- */
-  function nextTicketNo(boothCode) {
-    const key = `ctr.${boothCode}.${U.today()}`, n = get(key, 0) + 1;
-    set(key, n);
-    const prefix = (booth(boothCode) || {}).prefix || boothCode[0];
-    return `${prefix}-${String(n).padStart(3, '0')}`;
+  // Ticket numbers per booth: prefix, digits (2–4), start number, and when counting restarts (day | event | never).
+  function ticketFormat(b, n) {
+    const num = Math.max(0, parseInt(b.ticket_start, 10) || 1) + n - 1;
+    return `${b.prefix || (b.code || 'T')[0]}-${String(num).padStart(parseInt(b.ticket_digits, 10) || 3, '0')}`;
   }
+  function ticketKey(b) {
+    const r = b.ticket_reset || 'day', ev = activeEvent();
+    return r === 'never' ? `ctr.${b.code}.all` : r === 'event' ? `ctr.${b.code}.ev.${ev ? ev.event_id : 'none'}` : `ctr.${b.code}.${U.today()}`;
+  }
+  function nextTicketNo(boothCode) {
+    const b = booth(boothCode) || { code: boothCode }, key = ticketKey(b), n = get(key, 0) + 1;
+    set(key, n);
+    return ticketFormat(b, n);
+  }
+  const peekTicketNo = boothCode => { const b = booth(boothCode) || { code: boothCode }; return ticketFormat(b, get(ticketKey(b), 0) + 1); };
   function push(rows) { const o = get('outbox', []); o.push(...rows); set('outbox', o); }
   const outboxCount = () => get('outbox', []).filter(r => r.tab === 'Sales').length;
 
@@ -137,7 +146,7 @@ CS.store = (function () {
     get, set, push, catalog, saveCatalog, booth, productName,
     events, saveEvents, activeEvent, setActiveEvent, boothsForSale,
     session, deviceBooth, setDeviceBooth, login, logout, uname, staffList, findUser, pinOk, setStaffPin, isDefault, isDefaultPin,
-    recordSale, salesToday, allSales, voidSale, outboxCount, recordCloseout, closeoutsToday, allCloseouts,
+    ticketFormat, peekTicketNo, recordSale, salesToday, allSales, voidSale, outboxCount, recordCloseout, closeoutsToday, allCloseouts,
     imports, saveImports, exportSetup, importSetup,
   };
 })();

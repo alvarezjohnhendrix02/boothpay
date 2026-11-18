@@ -126,3 +126,10 @@ fieldset.field { border: 0; padding: 0; margin: 0; }
 .team-row { display: grid; grid-template-columns: 1.4fr 1.2fr 110px 96px 44px; gap: var(--s-2); align-items: end; }
 @media (max-width: 560px) { .team-row { grid-template-columns: 1fr 1fr 44px; padding-bottom: var(--s-2); border-bottom: var(--hair); } .team-row .icon-btn { grid-row: 1; grid-column: 3; } }
 .export-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--s-2); }
+
+/* booth form: ticket numbers */
+.ticket-grid { display: grid; grid-template-columns: 90px 1fr 90px 1fr; gap: var(--s-2); margin-top: var(--s-2); }
+@media (max-width: 560px) { .ticket-grid { grid-template-columns: 1fr 1fr; } }
+.ticket-preview { margin-top: var(--s-2); padding: var(--s-2) var(--s-3); border-radius: var(--r-1); background: var(--wash); font-size: var(--t-14); }
+.ticket-preview .mono { color: var(--safelight); }
+.tickets-set > span { display: inline-flex; align-items: center; gap: var(--s-2); }
