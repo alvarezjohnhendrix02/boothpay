@@ -68,7 +68,6 @@ CS.views.booths = (function () {
           </div>
           <p class="ticket-preview" id="tkPreview"></p>
         </fieldset>
-        <p class="note">${icon('user')} Managers and cashiers are added on the <b>People</b> tab.</p>
         <div><p class="h3">Stock to track <small class="sub">(optional)</small></p>
           <p class="sub">Supplies this booth uses up, like photo paper or pins. Each sale takes them out by itself.</p></div>
         <div class="stocks">${b.stock.map((s, i) => { const n = hand[s.stock_id]; return `
