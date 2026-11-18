@@ -7,15 +7,17 @@ CS.pin = (function () {
 
   function lockLeft(b) { const l = S.get(key(b), null); return l && l.until > Date.now() ? Math.ceil((l.until - Date.now()) / 1000) : 0; }
   const triesLeft = b => TRIES - (S.get(key(b), { fails: 0 }).fails % TRIES);
-  // → the matching staff record, or null. Wrong tries count toward the lock.
-  function check(b, pin) {
-    if (lockLeft(b)) return null;
-    const s = S.catalog().staff.find(x => x.booth === b && x.active !== false && x.pin_hash === U.hash(pin + b));
-    const l = S.get(key(b), { fails: 0, until: 0 });
-    if (s) { S.set(key(b), { fails: 0, until: 0 }); return s; }
+  // Sign in: username + PIN → staff record or null. approve: any manager of the booth with that PIN.
+  // Wrong tries count toward the lock (sign-in lock is for the whole device, so usernames can't be tried one by one).
+  function check(username, pin) { return tally('signin', (u => u && S.pinOk(u, pin) ? u : null)(S.findUser(username))); }
+  function checkBooth(b, pin) { return tally('ap.' + b, S.staffList(b).slice().sort((x, y) => (x.role === 'manager' ? 0 : 1) - (y.role === 'manager' ? 0 : 1)).find(s => S.pinOk(s, pin)) || null); }
+  function tally(k, s) {
+    if (lockLeft(k)) return null;
+    const l = S.get(key(k), { fails: 0, until: 0 });
+    if (s) { S.set(key(k), { fails: 0, until: 0 }); return s; }
     l.fails++;
     if (l.fails % TRIES === 0) l.until = Date.now() + STEPS[Math.min(l.fails / TRIES - 1, STEPS.length - 1)] * 60000;
-    S.set(key(b), l);
+    S.set(key(k), l);
     return null;
   }
   const clock = sec => `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`;
@@ -37,8 +39,8 @@ CS.pin = (function () {
     if (!sess || sess.role !== 'cashier') return done(sess);
     ap = { booth, done, pin: '' };
     const { head, icon, openSheet } = CS.ui;
-    openSheet(`${head('Booth lead needed', why)}
-      <p class="sub center">Ask your booth lead to type their PIN.</p>
+    openSheet(`${head('Manager needed', why)}
+      <p class="sub center">Ask a manager of this booth to type their PIN.</p>
       <div class="dots" id="apDots" aria-label="PIN digits entered"></div>
       <p class="err center" id="apErr" role="alert"></p>
       <div class="keypad" id="apPad">${['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', 'del'].map(k => k ? `<button data-ap-key="${k}" aria-label="${k === 'del' ? 'Delete' : k}">${k === 'del' ? icon('del') : k}</button>` : '<span></span>').join('')}</div>`);
@@ -47,7 +49,7 @@ CS.pin = (function () {
   function dots() { const el = document.getElementById('apDots'); if (el && ap) el.innerHTML = [0, 1, 2, 3].map(i => `<i class="${i < ap.pin.length ? 'on' : ''}"></i>`).join(''); }
   function lockView() {
     clearTimeout(ap && ap.timer);
-    const left = ap && lockLeft(ap.booth), err = document.getElementById('apErr'), pad = document.getElementById('apPad');
+    const left = ap && lockLeft('ap.' + ap.booth), err = document.getElementById('apErr'), pad = document.getElementById('apPad');
     if (!err) return;
     pad.querySelectorAll('button').forEach(b => { b.disabled = !!left; });
     if (left) { err.textContent = `Too many wrong tries. Wait ${clock(left)}.`; ap.timer = setTimeout(lockView, 1000); }
@@ -57,11 +59,11 @@ CS.pin = (function () {
     ap.pin = k === 'del' ? ap.pin.slice(0, -1) : (ap.pin + k).slice(0, 4);
     dots();
     if (ap.pin.length < 4) return;
-    const s = check(ap.booth, ap.pin);
+    const s = checkBooth(ap.booth, ap.pin);
     ap.pin = ''; setTimeout(dots, 200);
-    if (s && s.role === 'lead') { const f = ap; ap = null; CS.ui.closeSheet(); f.done(s); return; }
-    document.getElementById('apErr').textContent = s ? 'That is a cashier PIN. The booth lead must type theirs.'
-      : lockLeft(ap.booth) ? '' : `Not the lead PIN. ${triesLeft(ap.booth)} tries left.`;
+    if (s && s.role === 'manager') { const f = ap; ap = null; CS.ui.closeSheet(); f.done(s); return; }
+    document.getElementById('apErr').textContent = s ? 'That is a cashier PIN. A manager must type theirs.'
+      : lockLeft('ap.' + ap.booth) ? '' : `Not a manager PIN. ${triesLeft('ap.' + ap.booth)} tries left.`;
     lockView();
   }
   document.addEventListener('click', e => { const t = e.target.closest('[data-ap-key]'); if (t && ap) key2(t.dataset.apKey); });

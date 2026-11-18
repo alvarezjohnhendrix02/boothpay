@@ -94,7 +94,7 @@
         <li class="${s.status === 'void' ? 'voided' : ''}"><time class="num">${time(s.ts)}</time>
           <span>${s.items.map(i => `${esc(i.name || (bySku[i.sku] || { name: i.sku }).name)}${i.qty > 1 ? ' ×' + i.qty : ''}`).join(', ')}</span>
           <span class="num"><b>${money(s.total_c)}</b></span>
-          <span class="meta">${s.customer_name ? esc(s.customer_name) + ' · ' : ''}${s.status === 'void' ? `<span class="pill bad">Undone: ${esc(s.void_reason)}</span>`
+          <span class="meta">${s.staff_name ? 'by ' + esc(s.staff_name.split(' ')[0]) + ' · ' : ''}${s.customer_name ? esc(s.customer_name) + ' · ' : ''}${s.status === 'void' ? `<span class="pill bad">Undone: ${esc(s.void_reason)}</span>`
             : (s.pay === 'gcash' ? 'GCash ' + esc(s.gcash_ref) : 'Cash')}${s.tickets.length ? ' · <span class="mono">' + s.tickets.map(t => t.ticket_no).join(' ') + '</span>' : ''}</span>
           ${s.status === 'paid' ? `<button class="icon-btn" data-undo="${s.sale_id}" aria-label="Undo this sale" title="Undo this sale">${icon('undo')}</button>` : '<span></span>'}</li>`).join('')}</ol>`
         : `<div class="empty">${icon('chart')}<p>No sales yet today. Your first sale will show up here.</p></div>`}`;
@@ -157,9 +157,9 @@
   }
 
   function exportToday() {
-    const rows = [['sale_id', 'date', 'time', 'event_id', 'booth', 'item', 'qty', 'line_total', 'sale_total', 'payment', 'ref', 'status', 'customer']];
+    const rows = [['sale_id', 'date', 'time', 'event_id', 'booth', 'item', 'qty', 'line_total', 'sale_total', 'payment', 'ref', 'status', 'customer', 'sold_by']];
     S.salesToday(sess.booth).forEach(s => s.items.forEach(i => rows.push([s.sale_id, today(new Date(s.ts)), time(s.ts), s.event_id || '', s.booth,
-      i.name || (bySku[i.sku] || { name: i.sku }).name, i.qty, (i.price_c * i.qty / 100).toFixed(2), (s.total_c / 100).toFixed(2), s.pay, s.gcash_ref, s.status, s.customer_name || ''])));
+      i.name || (bySku[i.sku] || { name: i.sku }).name, i.qty, (i.price_c * i.qty / 100).toFixed(2), (s.total_c / 100).toFixed(2), s.pay, s.gcash_ref, s.status, s.customer_name || '', s.staff_name || ''])));
     CS.csv.download(`contactsheet-${sess.booth}-${today()}.csv`, CS.csv.write(rows));
     toast('Saved. Send this file to your moderator.');
   }
@@ -192,7 +192,7 @@
       closeSheet(); render();
     }
     else if ('export' in d) exportToday();
-    else if (d.tab === 'close' && sess.role === 'cashier') CS.pin.approve(sess.booth, 'To count the cash and close the day', lead => openTab('close', { ...sess, staff_id: lead.staff_id, role: 'lead' }));
+    else if (d.tab === 'close' && sess.role === 'cashier') CS.pin.approve(sess.booth, 'To count the cash and close the day', mgr => openTab('close', { ...sess, staff_id: mgr.staff_id, role: 'manager' }));
     else if (d.tab) openTab(d.tab, sess); else if (t.id === 'signout') { S.logout(); location.replace('index.html'); }
   });
   $('#sheet').addEventListener('close', () => { pay = null; });
@@ -207,7 +207,7 @@
   const ev = S.activeEvent();
   $('#boothBadge').innerHTML = badge(booth);
   $('#boothName').textContent = booth.name;
-  $('#eventName').textContent = (ev ? ev.name + ' · ' : '') + (sess.role === 'cashier' ? 'Cashier' : 'Lead');
+  $('#eventName').textContent = `${sess.name} · ${sess.role === 'cashier' ? 'Cashier' : 'Manager'}${ev ? ' · ' + ev.name : ''}`;
   $('#signout').innerHTML = icon('logout');
   $('[data-tab="sell"]').innerHTML = icon('cart') + 'Sell';
   $('[data-tab="today"]').innerHTML = icon('chart') + 'Today<span class="hide-sm">\'s sales</span>';

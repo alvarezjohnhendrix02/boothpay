@@ -34,7 +34,7 @@ CS.seed = (function () {
     'ST-SH': [['STK-SHEET', 1]], 'PN-58': [['STK-PIN', 1]], 'PN-3': [['STK-PIN', 3]] };
   products.forEach(p => { p.uses = (USES[p.sku] || []).map(([stock_id, qty]) => ({ stock_id, qty })); });
   // Starting PIN for every booth and the moderator: 1234. Change it in Admin → Booths.
-  const staff = booths.map(b => ({ staff_id: b.code + '-L1', name: b.name + ' team', booth: b.code, role: 'lead', pin_hash: h('1234' + b.code), active: true }));
-  staff.push({ staff_id: 'ADMIN-1', name: 'Moderator', booth: 'ADMIN', role: 'admin', pin_hash: h('1234ADMIN'), active: true });
+  const staff = booths.map(b => ({ staff_id: b.code + '-L1', username: b.code.toLowerCase() + '-manager', name: b.name + ' manager', booth: b.code, role: 'manager', pin_hash: h('1234' + b.code), active: true }));
+  staff.push({ staff_id: 'ADMIN-1', username: 'moderator', name: 'Moderator', booth: 'ADMIN', role: 'admin', pin_hash: h('1234ADMIN'), active: true });
   return { booths, products, staff, stock };
 })();

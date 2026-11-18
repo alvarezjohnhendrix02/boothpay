@@ -114,6 +114,9 @@ dialog.sheet::backdrop { background: rgb(24 23 26 / .5); }
 .keypad button { min-height: 68px; border-radius: var(--r-2); background: var(--card); box-shadow: var(--lift); font: 400 var(--t-28) var(--f-display); display: grid; place-items: center; }
 .keypad button:active { background: var(--wash); }
 .keypad.locked { opacity: .45; }
+.big-user { font-size: var(--t-20) !important; min-height: 60px !important; }
+.field-label { font-weight: 700; font-size: var(--t-14); margin-top: var(--s-4); text-align: center; }
+.who-line { display: inline-flex; align-items: center; gap: var(--s-2); padding: var(--s-2) 0; color: var(--ink); }
 .center { text-align: center; }
 
 /* ---------- register ---------- */

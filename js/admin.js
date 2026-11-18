@@ -178,9 +178,10 @@ CS.admin = (function () {
   /* ---------- the moderator must replace the starting PIN ---------- */
   function forcePin() {
     const sh = $('#sheet');
-    openSheet(`<div class="sheet-head"><div><p class="h2">${icon('key')} Set your own moderator PIN</p>
+    openSheet(`<div class="sheet-head"><div><p class="h2">${icon('key')} Set up your moderator account</p>
         <p class="sub">Everyone can guess 1234. Pick a new PIN before you continue.</p></div></div>
       <form id="fpForm" class="form" novalidate>
+        <label class="field"><span>Your username</span><input class="input" name="u" value="moderator" autocapitalize="none" spellcheck="false" autocomplete="off"><small>You will sign in with this.</small></label>
         <label class="field"><span>New PIN</span><input class="input big-input num" name="a" inputmode="numeric" maxlength="4" autocomplete="off" autofocus></label>
         <label class="field"><span>Type it again</span><input class="input big-input num" name="b" inputmode="numeric" maxlength="4" autocomplete="off"></label>
         <p class="err" id="fpErr" role="alert"></p>
@@ -192,13 +193,16 @@ CS.admin = (function () {
     if (e.target.id !== 'fpForm') return;
     e.preventDefault();
     const a = e.target.a.value.trim(), b = e.target.b.value.trim(), err = m => { $('#fpErr').textContent = m; };
+    const u = S.uname(e.target.u.value), c = JSON.parse(JSON.stringify(S.catalog())), me = c.staff.find(x => x.booth === 'ADMIN' && x.active !== false);
+    if (!/^[a-z0-9._-]{3,20}$/.test(u)) return err('The username needs 3 to 20 letters or numbers.');
+    if (c.staff.some(x => x.active !== false && x !== me && x.username === u)) return err('That username is already used by someone at a booth.');
     if (CS.pin.weak(a)) return err(CS.pin.weak(a));
     if (a !== b) return err('The two PINs are not the same.');
-    S.saveCatalog(S.setPin('ADMIN', a, JSON.parse(JSON.stringify(S.catalog()))));
+    me.username = u; S.setStaffPin(me, a); S.saveCatalog(c);
     delete $('#sheet').dataset.lock; CS.ui.closeSheet();
-    toast('Moderator PIN saved. Remember it!'); CS.sync.run(); go(current);
+    toast(`Saved. Sign in next time as "${u}".`); CS.sync.run(); go(current);
   });
-  document.addEventListener('input', e => { if (e.target.closest && e.target.closest('#fpForm')) e.target.value = e.target.value.replace(/\D/g, ''); });
+  document.addEventListener('input', e => { if (e.target.closest && e.target.closest('#fpForm')) e.target.value = e.target.name === 'u' ? S.uname(e.target.value) : e.target.value.replace(/\D/g, ''); });
   if (S.isDefaultPin('ADMIN')) forcePin();
 
   /* ---------- sign out after 15 minutes without use ---------- */

@@ -15,6 +15,11 @@ CS.store = (function () {
     const c = get('catalog', null) || CS.seed;
     c.booths.forEach(b => { if (CS.ui && CS.ui.OLD[b.color]) b.color = CS.ui.OLD[b.color]; });
     if (!c.staff.some(s => s.booth === 'ADMIN')) c.staff = c.staff.concat(CS.seed.staff.filter(s => s.booth === 'ADMIN'));
+    // Older setups: "lead" is now "manager", and everyone gets a starting username.
+    c.staff.forEach(s => {
+      if (!s.role || s.role === 'lead') s.role = 'manager';
+      if (!s.username) s.username = s.booth === 'ADMIN' ? 'moderator' : s.booth.toLowerCase() + '-' + (s.role === 'cashier' ? 'cashier' : 'manager');
+    });
     return c;
   }
   const saveCatalog = c => set('catalog', c);
@@ -35,29 +40,24 @@ CS.store = (function () {
   const session = () => get('session', null);
   const deviceBooth = () => get('device.booth', null);
   const setDeviceBooth = b => b ? set('device.booth', b) : del('device.booth');
-  function login(boothCode, pin) {
-    const s = CS.pin ? CS.pin.check(boothCode, pin) : catalog().staff.find(x => x.booth === boothCode && x.active && x.pin_hash === U.hash(pin + boothCode));
+  /* ---------- people: username + own PIN. role = manager | cashier | admin ---------- */
+  const uname = v => String(v || '').toLowerCase().replace(/[^a-z0-9._-]/g, '').slice(0, 20);
+  const staffList = (boothCode, c = catalog()) => c.staff.filter(s => s.active !== false && (!boothCode || s.booth === boothCode));
+  const findUser = (u, c = catalog()) => c.staff.find(s => s.active !== false && s.username === uname(u)) || null;
+  // New PINs are salted with the person's id; older ones (before usernames) used the booth code.
+  const pinOk = (s, pin) => s.hash_v === 2 ? s.pin_hash === U.hash(pin + ':' + s.staff_id) : s.pin_hash === U.hash(pin + s.booth);
+  function setStaffPin(s, pin) { s.pin_hash = U.hash(pin + ':' + s.staff_id); s.hash_v = 2; return s; }
+  const isDefault = s => pinOk(s, '1234');
+  const isDefaultPin = boothCode => staffList(boothCode).some(isDefault);
+
+  function login(username, pin) {
+    const s = CS.pin ? CS.pin.check(username, pin) : (u => u && pinOk(u, pin) ? u : null)(findUser(username));
     if (!s) return null;
-    const sess = { staff_id: s.staff_id, name: s.name, role: s.role, booth: boothCode, ts: U.now() };
-    set('session', sess);
-    if (boothCode !== 'ADMIN') setDeviceBooth(boothCode);
+    const sess = { staff_id: s.staff_id, name: s.name, username: s.username, role: s.role, booth: s.booth, ts: U.now() };
+    set('session', sess); set('last.user', s.username);
     return sess;
   }
   const logout = () => del('session');
-  // role: 'lead' (default), 'cashier' (can only sell) or 'admin'. pin = null turns that PIN off.
-  function setPin(boothCode, pin, c = catalog(), role = boothCode === 'ADMIN' ? 'admin' : 'lead') {
-    let s = c.staff.find(x => x.booth === boothCode && (x.role || 'lead') === role);
-    if (!s && pin == null) return c;
-    if (!s) {
-      const nm = (c.booths.find(b => b.code === boothCode) || { name: boothCode === 'ADMIN' ? 'Moderator' : boothCode }).name;
-      s = { staff_id: boothCode + (role === 'cashier' ? '-C1' : role === 'admin' ? '-1' : '-L1'), name: role === 'admin' ? 'Moderator' : `${nm} ${role}`, booth: boothCode, role, active: true };
-      c.staff.push(s);
-    }
-    if (pin == null) s.active = false; else { s.pin_hash = U.hash(pin + boothCode); s.active = true; }
-    return c;
-  }
-  const hasPin = (boothCode, role) => !!catalog().staff.find(x => x.booth === boothCode && (x.role || 'lead') === role && x.active !== false);
-  const isDefaultPin = boothCode => !!catalog().staff.find(x => x.booth === boothCode && x.active !== false && x.pin_hash === U.hash('1234' + boothCode));
 
   /* ---------- sales ---------- */
   function nextTicketNo(boothCode) {
@@ -86,7 +86,7 @@ CS.store = (function () {
     });
     const day = `sales.${boothCode}.${U.today()}`;
     const list = get(day, []);
-    list.push({ ...sale, customer_name: customer ? CS.customer.label(customer) : '', items, tickets });
+    list.push({ ...sale, staff_name: staff.name || '', customer_name: customer ? CS.customer.label(customer) : '', items, tickets });
     const saved = set(day, list);
     push([{ tab: 'Sales', data: sale }, ...items.map(d => ({ tab: 'SaleItems', data: d })), ...tickets.map(d => ({ tab: 'Tickets', data: d }))]);
     if (CS.stock) CS.stock.forSale(lines, boothCode, sale_id);
@@ -136,7 +136,7 @@ CS.store = (function () {
   return {
     get, set, push, catalog, saveCatalog, booth, productName,
     events, saveEvents, activeEvent, setActiveEvent, boothsForSale,
-    session, deviceBooth, setDeviceBooth, login, logout, setPin, hasPin, isDefaultPin,
+    session, deviceBooth, setDeviceBooth, login, logout, uname, staffList, findUser, pinOk, setStaffPin, isDefault, isDefaultPin,
     recordSale, salesToday, allSales, voidSale, outboxCount, recordCloseout, closeoutsToday, allCloseouts,
     imports, saveImports, exportSetup, importSetup,
   };
