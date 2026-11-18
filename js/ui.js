@@ -3,7 +3,7 @@ CS.ui = (function () {
   const P = {
     camera: '<path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.5"/>',
     pen: '<path d="M4 20l4-1L19 8l-3-3L5 16z"/><path d="M14 7l3 3"/>',
-    brush: '<path d="M14 4l6 6-7 7-6-6z"/><path d="M7 11c-2 1-4 3-4 7 3 0 6-1 7-4"/>',
+    brush: '<path d="M5 19l2.5-8.5 6-6 6 6-6 6z"/><path d="M5 19l5.6-5.6"/><circle cx="11.7" cy="12.3" r="1.5"/><path d="M15.5 2.5l6 6"/>', // pen tool
     sticker: '<path d="M5 4h14v9l-6 7H5z"/><path d="M13 20v-5a2 2 0 0 1 2-2h4"/>',
     star: '<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/>',
     cup: '<path d="M5 8h12v6a5 5 0 0 1-5 5h-2a5 5 0 0 1-5-5z"/><path d="M17 10h1.5a2.5 2.5 0 0 1 0 5H17"/><path d="M9 3v2M13 3v2"/>',
