@@ -218,6 +218,9 @@ CS.views.reports = (function () {
           <button class="btn ghost" data-r-sum>${icon('download')} Summary (CSV)</button>
           <button class="btn primary" data-r-print>${icon('printer')} Print / PDF</button></div>
       </section>`}`;
+    // A half-width panel left alone in its row would leave an empty gap: let the last one take the full width.
+    const halves = el.querySelectorAll('.report-grid > .panel:not(.span2)');
+    if (halves.length % 2) halves[halves.length - 1].classList.add('span2');
   }
 
   function exportAll() {
