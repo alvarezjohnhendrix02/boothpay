@@ -60,13 +60,12 @@ CS.views.booths = (function () {
         <fieldset class="field"><span>Icon</span><div class="icon-pick">${BOOTH_ICONS.map(n => `
           <label><input type="radio" name="icon" value="${n}" ${b.icon === n ? 'checked' : ''}><i>${icon(n)}</i><span class="sr">${n}</span></label>`).join('')}</div></fieldset>
         <fieldset class="field tickets-set"><span>${icon('ticket')} Ticket numbers</span>
-          <small>For items that get a ticket (photos, poems, drawings). The customer is called by this number. Tickets are at most 10 characters, like DOOD-12345.</small>
+          <small>For items that get a ticket (photos, poems, drawings). The customer is called by this number. The number can be up to 12 digits.</small>
           <div class="ticket-grid">
             <label class="mini-field"><span>Prefix</span><input class="input" name="prefix" value="${esc(b.prefix)}" maxlength="4" placeholder="P" autocomplete="off"></label>
-            <label class="mini-field"><span>Start at</span><input class="input num" name="ticket_start" value="${esc(b.ticket_start || 1)}" inputmode="numeric" maxlength="5" autocomplete="off"></label>
+            <label class="mini-field"><span>Start at</span><input class="input num" name="ticket_start" value="${esc(b.ticket_start || 1)}" inputmode="numeric" maxlength="12" autocomplete="off"></label>
             <label class="mini-field"><span>Counting restarts</span><select class="input" name="ticket_reset">${[['day', 'Every day'], ['event', 'Every event'], ['never', 'Never']].map(([v, l]) => `<option value="${v}" ${(b.ticket_reset || 'day') === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
           </div>
-          <p class="ticket-preview" id="tkPreview"></p>
         </fieldset>
         <div><p class="h3">Stock to track <small class="sub">(optional)</small></p>
           <p class="sub">Supplies this booth uses up, like photo paper or pins. Each sale takes them out by itself.</p></div>
@@ -204,7 +203,7 @@ CS.views.booths = (function () {
   function input(e) {
     const t = e.target;
     if (t.name === 'prefix') { const v = t.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4); if (v !== t.value) t.value = v; }
-    if (t.name === 'ticket_start') t.value = t.value.replace(/\D/g, '').slice(0, 5);
+    if (t.name === 'ticket_start') t.value = t.value.replace(/\D/g, '').slice(0, 12);
     if (t.closest && t.closest('.tickets-set')) ticketPreview();
     if (t.id === 'adminUser' || t.dataset.tf === 'username') { const v = S.uname(t.value); if (v !== t.value) t.value = v; }
     if (t.id === 'adminPin' || t.dataset.tf === 'pin' || ['low', 'add'].includes(t.dataset.sf) || /^q\d$/.test(t.dataset.f || '')) t.value = t.value.replace(/\D/g, '');

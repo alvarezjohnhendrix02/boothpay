@@ -74,9 +74,9 @@ CS.store = (function () {
 
   /* ---------- sales ---------- */
   // Ticket numbers per booth: prefix + start number, restarting every day, event, or never.
-  // Always at most 10 characters: prefix (≤4) + "-" + number (shown with at least 3 digits, at most 5).
+  // Prefix (≤4) + "-" + number: shown with at least 3 digits, up to 12 digits.
   function ticketFormat(b, n) {
-    const num = (Math.max(0, parseInt(b.ticket_start, 10) || 1) + n - 1) % 100000;
+    const num = (Math.max(0, parseInt(b.ticket_start, 10) || 1) + n - 1) % 1e12;
     return `${String(b.prefix || (b.code || 'T')[0]).slice(0, 4)}-${String(num).padStart(3, '0')}`;
   }
   function ticketKey(b) {
