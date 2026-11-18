@@ -1,5 +1,5 @@
 /* Moderator → Expenses: what the club spent, by type and booth. Total = quantity × price each.
-   Profit = sales − expenses. Deleting marks the expense void (kept in the Sheet as a new row). */
+   Net = sales − expenses − LEEF share (10% of what is left). Deleting marks the expense void (kept in the Sheet as a new row). */
 CS.expenses = (function () {
   const U = CS.util, S = CS.store;
   const TYPES = [
@@ -44,7 +44,7 @@ CS.views.expenses = (function () {
     const byType = {}; list.forEach(x => { byType[x.type] = (byType[x.type] || 0) + x.amount_c; });
     const max = Math.max(1, ...Object.values(byType)), opt = (v, cur, l) => `<option value="${esc(v)}" ${v === cur ? 'selected' : ''}>${esc(l)}</option>`;
     el.innerHTML = `
-      <div class="view-head"><div><h2 class="h1">Expenses</h2><p class="sub">Everything the club spent. Profit = sales − expenses.</p></div>
+      <div class="view-head"><div><h2 class="h1">Expenses</h2><p class="sub">Everything the club spent. Net sales = sales − expenses − LEEF share (10% of sales after expenses).</p></div>
         <button class="btn primary" data-x-new>${icon('plus')} Add expense</button></div>
       <div class="filters">
         <label class="field"><span>Event</span><select class="input" data-xf="event">${opt('*', f.event, 'All events')}${S.events().map(e => opt(e.event_id, f.event, e.name)).join('')}${opt('', f.event, 'No event')}</select></label>
@@ -53,7 +53,9 @@ CS.views.expenses = (function () {
       <div class="stats">
         <div class="stat"><p class="label">Sales</p><p class="big-num">${money(sales)}</p></div>
         <div class="stat"><p class="label">Expenses</p><p class="big-num">${money(spent)}</p></div>
-        <div class="stat"><p class="label">${sales - spent < 0 ? 'Loss' : 'Profit'}</p><p class="big-num ${sales - spent < 0 ? 'bad-text' : 'ok-text'}">${money(Math.abs(sales - spent))}</p></div>
+        <div class="stat"><p class="label">After expenses</p><p class="big-num ${sales - spent < 0 ? 'bad-text' : ''}">${sales - spent < 0 ? '−' : ''}${money(Math.abs(sales - spent))}</p></div>
+        <div class="stat"><p class="label">LEEF share (10%)</p><p class="big-num">${money(CS.report.net(sales, spent).leef)}</p></div>
+        <div class="stat"><p class="label">Net sales</p><p class="big-num ${CS.report.net(sales, spent).net < 0 ? 'bad-text' : 'ok-text'}">${CS.report.net(sales, spent).net < 0 ? '−' : ''}${money(Math.abs(CS.report.net(sales, spent).net))}</p></div>
       </div>
       ${list.length ? `
       <section class="panel"><p class="h3">By type</p><ul class="hbars">${Object.entries(byType).sort((a, b) => b[1] - a[1]).map(([k, v]) => { const t = E.type(k); return `

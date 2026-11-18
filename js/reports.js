@@ -27,7 +27,13 @@ CS.report = (function () {
     return out;
   }
   function totalsByEvent() { const t = {}; collect().forEach(r => { t[r.event_id] = (t[r.event_id] || 0) + r.total_c; }); return t; }
-  return { collect, totalsByEvent };
+  // LEEF (Learning Environment Enhancement Fund): 10% of sales after expenses, nothing when there is no profit.
+  const LEEF_RATE = 0.10;
+  function net(salesC, expC) {
+    const after = salesC - expC, leef = after > 0 ? Math.round(after * LEEF_RATE) : 0;
+    return { sales: salesC, expenses: expC, after, leef, net: after - leef };
+  }
+  return { collect, totalsByEvent, net, LEEF_RATE };
 })();
 
 CS.views = CS.views || {};
@@ -51,9 +57,10 @@ CS.views.reports = (function () {
     });
     return Object.values(latest).sort((a, b) => a.ts.localeCompare(b.ts));
   }
+  function expIn() { return CS.expenses.live().filter(x => (f.event === '*' || (x.event_id || '') === f.event) && (f.booth === '*' || (x.booth || '') === f.booth) && (f.day === '*' || x.date === f.day)); }
+  const netOf = (rows, gross) => CS.report.net(gross, expIn().reduce((a, x) => a + x.amount_c, 0));
   function moneyPanel(rows) {
     const ex = CS.expenses.live().filter(x => (f.event === '*' || (x.event_id || '') === f.event) && (f.booth === '*' || (x.booth || '') === f.booth) && (f.day === '*' || x.date === f.day));
-    if (!ex.length) return '';
     const sales = group(rows, r => r.booth), cost = group(ex, x => x.booth || '', x => x.amount_c);
     const codes = [...new Set([...Object.keys(sales), ...Object.keys(cost)])].sort((a, b) => (a === '') - (b === ''));
     const tS = rows.reduce((a, r) => a + r.total_c, 0), tE = ex.reduce((a, x) => a + x.amount_c, 0);
@@ -63,7 +70,19 @@ CS.views.reports = (function () {
       <tbody>${codes.map(c => `<tr><td>${c ? `<span class="mini">${badge(boothOf(c), 'sm')}${esc(boothOf(c).name)}</span>` : 'Whole club (shared costs)'}</td>
         <td class="r num">${money(sales[c] || 0)}</td><td class="r num">${money(cost[c] || 0)}</td><td class="r num">${pl((sales[c] || 0) - (cost[c] || 0))}</td></tr>`).join('')}</tbody>
       <tfoot><tr><td><b>Total</b></td><td class="r num"><b>${money(tS)}</b></td><td class="r num"><b>${money(tE)}</b></td><td class="r num">${pl(tS - tE)}</td></tr></tfoot></table></div>
+      ${netBlock(tS, tE)}
       <p class="sub">Expenses come from the <b>Expenses</b> page. Whole-club costs are not split between booths.</p></section>`;
+  }
+  // The event's bottom line, laid out like the PMS report.
+  function netBlock(tS, tE) {
+    const n = CS.report.net(tS, tE), neg = v => v ? '−' + money(v) : money(0);
+    return `<div class="net-block">
+      <div class="row"><span>Gross sales</span><span class="num">${money(n.sales)}</span></div>
+      <div class="row"><span>Less: expenses</span><span class="num">${neg(n.expenses)}</span></div>
+      <div class="row"><span>Sales after expenses</span><span class="num">${n.after < 0 ? '−' : ''}${money(Math.abs(n.after))}</span></div>
+      <div class="row"><span>Less: LEEF share <span class="sub">(10% of sales after expenses)</span></span><span class="num">${neg(n.leef)}</span></div>
+      <div class="row total"><span>Net sales</span><span class="num ${n.net < 0 ? 'bad-text' : 'ok-text'}">${n.net < 0 ? '−' : ''}${money(Math.abs(n.net))}</span></div>
+    </div>`;
   }
   function stockPanel() {
     const list = CS.stock.items().filter(s => f.booth === '*' || s.booth === f.booth);
@@ -172,6 +191,7 @@ CS.views.reports = (function () {
         <div class="stat"><p class="label">Transactions</p><p class="big-num">${rows.length}</p></div>
         <div class="stat"><p class="label">Average sale</p><p class="big-num">${money(Math.round(gross / rows.length))}</p></div>
         <div class="stat"><p class="label">Items sold</p><p class="big-num">${units}</p></div>
+        <div class="stat"><p class="label">Net sales <span class="sub">(after expenses &amp; LEEF)</span></p><p class="big-num">${money(netOf(rows, gross).net)}</p></div>
       </div>
       <div class="report-grid">
         ${moneyPanel(rows)}
@@ -215,6 +235,9 @@ CS.views.reports = (function () {
     const p = c => (c / 100).toFixed(2), tot = { n: 0, q: 0, cash: 0, gcash: 0, other: 0, t: 0 };
     Object.entries(by).forEach(([b, o]) => { out.push([boothOf(b).name, o.n, o.q, p(o.cash), p(o.gcash), p(o.other), p(o.t)]); Object.keys(tot).forEach(k => { tot[k] += o[k]; }); });
     out.push(['TOTAL', tot.n, tot.q, p(tot.cash), p(tot.gcash), p(tot.other), p(tot.t)]);
+    const n = netOf(rows, tot.t);
+    out.push([], ['Gross sales', p(n.sales)], ['Less: expenses', p(-n.expenses)], ['Sales after expenses', p(n.after)],
+      ['Less: LEEF share (10% of sales after expenses)', p(-n.leef)], ['Net sales', p(n.net)]);
     CS.csv.download(`boothpay-summary-${U.today()}.csv`, CS.csv.write(out));
   }
 
