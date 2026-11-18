@@ -242,6 +242,15 @@ dialog.sheet::backdrop { background: rgb(24 23 26 / .5); }
 .co-sum .sub-v { font-size: var(--t-14); color: inherit; }
 .done-mark.bad { background: var(--coral); }
 
+/* sign-in: pick your name */
+.people { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: var(--s-2); }
+.person { display: flex; align-items: center; gap: var(--s-3); width: 100%; min-height: 64px; padding: var(--s-2) var(--s-3); text-align: left; background: var(--card); border-radius: var(--r-2); box-shadow: var(--lift); border-left: 5px solid var(--booth, var(--rule)); }
+.person > span:not(.badge) { display: grid; min-width: 0; flex: 1; }
+.person > span:not(.badge) b { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.person .ic.go { color: var(--graphite); }
+.person.big { min-height: 80px; }
+.person:active { transform: scale(.985); }
+
 /* install + update */
 .install { display: flex; align-items: center; gap: var(--s-3); width: 100%; padding: var(--s-4); text-align: left; border-radius: var(--r-2); background: var(--amber-wash); border: 2px dashed var(--lemon); }
 .install > span { display: grid; gap: 2px; }

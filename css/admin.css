@@ -143,3 +143,7 @@ fieldset.field { border: 0; padding: 0; margin: 0; }
 /* reports: PMS-style bottom line */
 .net-block { display: grid; gap: var(--s-2); max-width: 520px; margin-left: auto; padding-top: var(--s-2); border-top: var(--hair); }
 .net-block .row.total { font-weight: 700; font-size: var(--t-18); border-top: var(--hair); padding-top: var(--s-2); }
+
+/* people page */
+.people-list li { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); padding: var(--s-2) 0; border-top: var(--hair); }
+.people-list .pill { margin-left: 4px; }

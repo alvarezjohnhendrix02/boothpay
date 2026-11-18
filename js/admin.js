@@ -95,7 +95,7 @@ CS.admin = (function () {
   const { $, $$, esc } = CS.util, S = CS.store, { icon, toast, openSheet, head } = CS.ui;
   const sess = S.session();
   if (!sess || sess.role !== 'admin') { location.replace('index.html'); return {}; }
-  const TABS = [['reports', 'chart', 'Reports'], ['events', 'calendar', 'Events'], ['booths', 'store', 'Booths'], ['expenses', 'cash', 'Expenses'], ['upload', 'upload', 'Upload PMS']];
+  const TABS = [['reports', 'chart', 'Reports'], ['events', 'calendar', 'Events'], ['booths', 'store', 'Booths'], ['people', 'user', 'People'], ['expenses', 'cash', 'Expenses'], ['upload', 'upload', 'Upload PMS']];
   let current = TABS.some(t => t[0] === location.hash.slice(1)) ? location.hash.slice(1) : S.events().length ? 'reports' : 'events';
 
   function go(v) {
