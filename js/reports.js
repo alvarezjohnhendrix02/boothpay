@@ -22,7 +22,7 @@ CS.report = (function () {
       seen.add(r.ext_id);
       if (r.status === 'void') return;
       out.push({ id: r.ext_id, ts: r.ts, event_id: r.event_id != null ? r.event_id : b.event_id, booth: r.booth || b.booth,
-        items: r.items, total_c: r.total_c, pay: r.pay, source: b.source });
+        items: r.items, total_c: r.total_c, pay: r.pay, source: b.source, customer_id: r.customer_id || '', customer_name: r.customer_name || '' });
     }));
     return out;
   }

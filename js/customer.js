@@ -7,14 +7,14 @@ CS.customer = (function () {
     ['Grade school', [['K', 'Kinder'], ...[1, 2, 3, 4, 5, 6].map(n => [String(n), 'Grade ' + n])]],
     ['High school', [7, 8, 9, 10].map(n => [String(n), 'Grade ' + n])],
     ['Senior high', [['11', 'Grade 11'], ['12', 'Grade 12']]],
-    ['College', ['1st', '2nd', '3rd', '4th', '5th'].map((y, i) => ['C' + (i + 1), `College ${y} year`])],
+    ['College', [...['1st', '2nd', '3rd', '4th', '5th'].map((y, i) => ['C' + (i + 1), `College ${y} year`]), ['C', 'College (year not given)']]],
     ['Teacher / Staff', [['teacher', 'Teacher / Staff']]],
     ['Visitor', [['guest', 'Visitor / Parent']]],
   ];
   const GRADES = LEVELS.flatMap(l => l[1]);
   const levelOf = g => (LEVELS.find(l => l[1].some(x => x[0] === g)) || ['Other'])[0];
   // What the third box means for each kind of customer (always required).
-  const sectionInfo = g => /^C\d$/.test(g) ? ['Course & section', 'e.g. BSIT 2A'] : g === 'teacher' ? ['Department or office', 'e.g. Science Dept.']
+  const sectionInfo = g => /^C\d?$/.test(g) ? ['Course & section', 'e.g. BSIT 2A'] : g === 'teacher' ? ['Department or office', 'e.g. Science Dept.']
     : g === 'guest' ? ['School or group', 'e.g. Rizal High or parent of Juan'] : ['K', '1', '2', '3', '4', '5', '6'].includes(g) ? ['Section', 'e.g. Sampaguita'] : ['Section', 'e.g. Einstein or STEM A'];
   const SUFFIX = { jr: 'Jr.', sr: 'Sr.', ii: 'II', iii: 'III', iv: 'IV' };
   const ACRONYM = /^(stem|abm|humss|gas|tvl|ict|he|ia|ste|spa|spj|sps|spfl|smaw|css|eim|afa|ssc|sci|bs[a-z]{0,5}|ab[a-z]{0,4}|beed|bsed|bped|btvted|bat|it|cs|is|hrm|hm|tm|ce|ee|me|ece|cpe)$/i;
@@ -37,13 +37,13 @@ CS.customer = (function () {
   }
   const liveSection = s => String(s).replace(/[^\p{L}\d .'’-]/gu, '').replace(/ {2,}/g, ' ');
   function section(s) {
-    return liveSection(s).trim().split(' ').filter(Boolean).map(w =>
-      ACRONYM.test(w) || ROMAN.test(w) || /^\p{L}$/u.test(w) || /^\d+\p{L}{1,2}$/u.test(w) ? w.toUpperCase()
+    return liveSection(s).replace(/\bst(\.\s*|\s+)(?=\p{L})/giu, 'St. ').replace(/^[\s-–:]+/, '').trim().split(' ').filter(Boolean).map(w =>
+      ACRONYM.test(w) || ROMAN.test(w) || /^\p{L}$/u.test(w) || /^\d+\p{L}{1,2}$/u.test(w) || /^\p{Lu}{2,5}$/u.test(w) ? w.toUpperCase() // short ALL-CAPS words are names like OLHR, STA
         : w.split('-').map(p => /^\d+\p{L}?$/u.test(p) || ACRONYM.test(p) || /^\p{L}$/u.test(p) ? p.toUpperCase() : cap(p)).join('-')).join(' ');
   }
   const isStudent = g => !!g && g !== 'teacher' && g !== 'guest';
   const gradeLabel = g => (GRADES.find(x => x[0] === g) || [g, g])[1];
-  const short = g => g === 'K' ? 'Kinder' : /^\d+$/.test(g) ? 'Gr ' + g : /^C\d$/.test(g) ? 'College ' + g.slice(1) : g === 'teacher' ? 'Teacher' : g === 'guest' ? 'Visitor' : g;
+  const short = g => g === 'K' ? 'Kinder' : /^\d+$/.test(g) ? 'Gr ' + g : /^C\d$/.test(g) ? 'College ' + g.slice(1) : g === 'C' ? 'College' : g === 'teacher' ? 'Teacher' : g === 'guest' ? 'Visitor' : g;
   const details = c => !c || !c.grade ? '' : short(c.grade) + (c.section ? ' · ' + c.section : '');
   const label = c => !c ? '' : c.name + (c.grade ? ' · ' + details(c) : '');
   const matchKey = c => [c.name, c.grade, c.section].join('|').toLowerCase().replace(/[^a-z0-9|]/g, '');
