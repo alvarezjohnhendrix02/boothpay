@@ -43,12 +43,13 @@
     const hand = CS.stock.onHand(sess.booth);
     $('#grid').innerHTML = items.length ? items.map(p => {
       const q = cart[p.sku] || 0, left = CS.stock.canMake(p, hand), lowAt = left != null && (p.uses || []).some(u => { const it = CS.stock.byId(u.stock_id); return it && CS.stock.isLow(it, hand[u.stock_id] || 0); });
-      return `<button class="tile${q ? ' in' : ''}" data-sku="${p.sku}" aria-label="Add ${esc(p.name)}, ${money(p.price_c)}">
+      return `<div class="tile-cell"><button class="tile${q ? ' in' : ''}" data-sku="${p.sku}" aria-label="Add ${esc(p.name)}, ${money(p.price_c)}">
         <span class="tile-name">${esc(p.name)}</span>
         <span><span class="tile-price">${money(p.price_c)}</span><br>
         <span class="tile-kind">${p.type === 'service' ? icon('ticket') + 'Gets a ticket number' : icon('check') + 'Hand it over'}</span>
         ${left == null ? '' : `<br><span class="pill ${left <= 0 || lowAt ? 'bad' : 'ok'}">${left <= 0 ? 'Out of stock' : left + ' left'}</span>`}</span>
-        ${q ? `<span class="qty" aria-hidden="true">${q}</span>` : ''}</button>`;
+        ${q ? `<span class="qty" aria-hidden="true">${q}</span>` : ''}</button>
+        ${q ? `<button class="tile-minus" data-dec="${p.sku}" aria-label="One less ${esc(p.name)}" title="One less">−</button>` : ''}</div>`;
     }).join('') : '<p class="note" style="grid-column:1/-1">This booth has nothing to sell yet. Ask the moderator to add items in Booths.</p>';
     $$('.cart-side .cart-body').forEach(el => { el.innerHTML = cartHTML(); });
     const n = count();
@@ -213,8 +214,8 @@
   $('#eventName').textContent = `${sess.name} · ${sess.role === 'cashier' ? 'Cashier' : 'Manager'}${ev ? ' · ' + ev.name : ''}`;
   $('#signout').innerHTML = icon('logout');
   $('[data-tab="sell"]').innerHTML = icon('cart') + 'Sell';
-  $('[data-tab="today"]').innerHTML = icon('chart') + 'Today<span class="hide-sm">\'s sales</span>';
-  $('[data-tab="close"]').innerHTML = icon('cash') + 'Close<span class="hide-sm"> day</span>';
+  $('[data-tab="today"]').innerHTML = icon('chart') + '<span>Today<span class="hide-sm">\'s sales</span></span>';
+  $('[data-tab="close"]').innerHTML = icon('cash') + '<span>Close<span class="hide-sm"> day</span></span>';
   $('[data-tab="stock"]').innerHTML = icon('sticker') + 'Stock';
   $('[data-tab="stock"]').hidden = !CS.stock.items(sess.booth).length;
   render();

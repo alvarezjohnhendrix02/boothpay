@@ -138,6 +138,10 @@ dialog.sheet::backdrop { background: rgb(24 23 26 / .5); }
 .tile-price { font: 400 var(--t-28)/1 var(--f-display); font-variant-numeric: tabular-nums; }
 .tile-kind { display: inline-flex; align-items: center; gap: 4px; font-size: var(--t-12); font-weight: 600; color: var(--graphite); }
 .tile-kind .ic { width: 14px; height: 14px; }
+.tile-cell { position: relative; display: grid; }
+.tile-minus { position: absolute; top: -8px; left: -8px; z-index: 1; width: 40px; height: 40px; border-radius: 50%; background: var(--ink); color: var(--on-ink); font-size: 26px; font-weight: 700; line-height: 1; display: grid; place-items: center; box-shadow: 0 0 0 3px var(--paper); transition: transform var(--dur) var(--ease); }
+.tile-minus:active { transform: scale(.9); }
+.tile-cell:has(.tile-minus) .tile { padding-top: 38px; }
 .tile .qty { position: absolute; top: var(--s-3); right: var(--s-3); min-width: 30px; height: 30px; padding: 0 8px; border-radius: 15px; background: var(--coral); color: var(--on-pastel); font-weight: 700; display: grid; place-items: center; }
 .cartbar { position: fixed; inset: auto 0 0 0; padding: var(--s-3) var(--s-4) calc(var(--s-3) + env(safe-area-inset-bottom)); background: var(--paper); border-top: var(--hair); z-index: 6; }
 .cartbar .btn { width: 100%; justify-content: space-between; min-height: 60px; font-size: var(--t-18); }
