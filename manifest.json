@@ -1,0 +1,16 @@
+{
+  "name": "ContactSheet · SPCIS Media Arts Club",
+  "short_name": "ContactSheet",
+  "description": "Booth sales that work offline and sync to a Google Sheet.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#FFF7EA",
+  "theme_color": "#FF8A7A",
+  "icons": [
+    { "src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "assets/icons/icon-any-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

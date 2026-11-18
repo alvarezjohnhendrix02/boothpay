@@ -187,3 +187,9 @@ dialog.sheet::backdrop { background: rgb(24 23 26 / .5); }
 .reasons { display: flex; flex-wrap: wrap; gap: var(--s-2); }
 .reasons button { min-height: 44px; padding: 0 var(--s-4); border-radius: 99px; border: 2px solid var(--rule); background: var(--card); font-weight: 600; }
 .reasons button[aria-checked="true"] { border-color: var(--ink); background: var(--ink); color: var(--on-ink); }
+
+/* install + update */
+.install { display: flex; align-items: center; gap: var(--s-3); width: 100%; padding: var(--s-4); text-align: left; border-radius: var(--r-2); background: var(--amber-wash); border: 2px dashed var(--lemon); }
+.install > span { display: grid; gap: 2px; }
+.update-bar { position: fixed; top: var(--s-3); left: 50%; transform: translateX(-50%); z-index: 60; display: flex; align-items: center; gap: var(--s-3); padding: var(--s-2) var(--s-2) var(--s-2) var(--s-4); border-radius: 99px; background: var(--lemon); color: var(--on-pastel); font-weight: 700; box-shadow: 0 4px 0 #E8C24F; max-width: calc(100vw - 24px); white-space: nowrap; }
+.update-bar .btn { min-height: 40px; border-radius: 99px; background: var(--on-pastel); color: #FFF7EA; }
