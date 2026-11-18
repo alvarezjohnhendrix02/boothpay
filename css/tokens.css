@@ -1,0 +1,62 @@
+/* ContactSheet design tokens — "Summer". Tokens only, no components. */
+/* Varela Round (SIL Open Font License). One weight: "CS Round" never fakes bold (headings, numbers);
+   "CS Body" lets the browser bold it for <b> and labels. */
+@font-face { font-family: "CS Round"; src: url(../assets/fonts/varelaround-400.ttf) format("truetype"); font-weight: 100 900; font-display: swap; }
+@font-face { font-family: "CS Body"; src: url(../assets/fonts/varelaround-400.ttf) format("truetype"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Plex Mono"; src: url(../assets/fonts/plexmono-500.woff2) format("woff2"); font-weight: 500; font-display: swap; }
+
+:root {
+  /* summer pastels — bright, not muted. Dark text always sits on them. */
+  --coral: #FF8A7A;
+  --peach: #FFB98A;
+  --lemon: #FFE27A;
+  --mint: #7FE3B4;
+  --aqua: #7ADCD8;
+  --sky: #8CC8FF;
+  --lilac: #C7A8FF;
+  --pink: #FFA3CF;
+  --on-pastel: #2B2342;
+
+  /* surfaces & text */
+  --paper: #FFF7EA;
+  --card: #FFFFFF;
+  --wash: #FFEFD6;
+  --rule: #F1E1C8;
+  --graphite: #6A6080;
+  --ink: #2B2342;
+  --on-ink: #FFF7EA;
+  /* status: text-safe darker tones + pastel washes */
+  --safelight: #D9394A;
+  --safe-wash: #FFE3E6;
+  --fixer: #0F7A4E;
+  --fix-wash: #DDF8EB;
+  --amber: #9A6400;
+  --amber-wash: #FFF2C7;
+
+  --f-display: "CS Round", "Arial Rounded MT Bold", ui-rounded, system-ui, sans-serif;
+  --f-body: "CS Body", ui-rounded, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --f-mono: "Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+
+  --t-12: .75rem; --t-14: .875rem; --t-16: 1rem; --t-18: 1.125rem; --t-20: 1.25rem;
+  --t-28: 1.75rem; --t-36: 2.25rem; --t-44: 2.75rem; --t-72: 4.5rem;
+
+  --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 24px; --s-6: 32px; --s-7: 48px;
+  --r-1: 12px; --r-2: 18px; --r-3: 24px;
+  --tap: 52px;
+  --hair: 1px solid var(--rule);
+  --lift: 0 0 0 1px var(--rule), 0 3px 0 var(--rule);
+  --ease: cubic-bezier(.2, .7, .2, 1);
+  --dur: 140ms;
+}
+
+/* Dark = warm summer night; pastels stay bright */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #1E1A2E; --card: #2A2540; --wash: #342E4E; --rule: #403960; --graphite: #B9B0D4;
+    --ink: #FFF3E2; --on-ink: #1E1A2E;
+    --safelight: #FF8A93; --safe-wash: #45222E; --fixer: #7FE3B4; --fix-wash: #1D3A33;
+    --amber: #FFD36A; --amber-wash: #3E3420;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) { :root { --dur: 0ms; } }

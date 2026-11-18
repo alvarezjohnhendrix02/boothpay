@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#18171A">
+<title>ContactSheet · Moderator</title>
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/ui.css">
+<link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="sprocket" aria-hidden="true"></div>
+  <div class="topbar-in">
+    <div class="who-block"><span id="adminBadge" class="badge" style="--booth:var(--lilac)"></span><div style="min-width:0"><p class="name">Moderator</p><p class="sub" id="adminEvent"></p></div></div>
+    <button class="btn ghost sm" id="phoneSetup" style="margin-left:auto"></button>
+    <button class="icon-btn" id="signout" aria-label="Sign out" title="Sign out"></button>
+  </div>
+  <nav class="tabs" role="tablist" id="tabs"></nav>
+</header>
+<main class="admin-main" id="view"></main>
+<dialog class="sheet" id="sheet"><div class="sheet-in"></div></dialog>
+<script src="js/util.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/csv.js"></script>
+<script src="js/seed.js"></script>
+<script src="js/store.js"></script>
+<script src="js/sync.js"></script>
+<script src="js/reports.js"></script>
+<script src="js/booths.js"></script>
+<script src="js/import.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>
