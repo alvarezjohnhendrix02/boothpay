@@ -11,6 +11,8 @@
   const cartKey = 'cart.' + sess.booth;
   let cart = S.get(cartKey, {});
   let pay = null, undo = null;
+  const custKey = 'cart.cust.' + sess.booth;
+  let cust = S.get(custKey, null); // optional customer for the current sale
   const GCASH_ON = false; // GCash is grayed out for now. Set to true to turn it back on.
   document.documentElement.style.setProperty('--booth', booth.color);
 
@@ -27,6 +29,8 @@
       <li><span class="nm">${esc(l.p.name)}</span><span class="amt num">${money(l.p.price_c * l.q)}</span>
         <span class="step"><button data-dec="${l.p.sku}" aria-label="One less ${esc(l.p.name)}">−</button><b class="num">${l.q}</b><button data-inc="${l.p.sku}" aria-label="One more ${esc(l.p.name)}">+</button></span>
         <span class="sub" style="text-align:right">${money(l.p.price_c)} each</span></li>`).join('')}</ul>
+      <div class="cust-row">${cust ? `${icon('user')}<span><b>${esc(cust.name)}</b><span class="sub">${esc(CS.customer.label(cust).slice(cust.name.length + 3))}</span></span><button class="link" data-cust>Change</button>`
+        : `<button class="btn ghost wide sm" data-cust>${icon('user')} Add customer name <span class="sub">(optional)</span></button>`}</div>
       <div class="cart-foot"><span class="h3">Total</span><span class="big-num">${money(t)}</span></div>
       <div class="cart-actions">
         <button class="btn go wide" data-charge>${icon('cash')} Charge ${money(t)}</button>
@@ -79,7 +83,7 @@
         <li class="${s.status === 'void' ? 'voided' : ''}"><time class="num">${time(s.ts)}</time>
           <span>${s.items.map(i => `${esc(i.name || (bySku[i.sku] || { name: i.sku }).name)}${i.qty > 1 ? ' ×' + i.qty : ''}`).join(', ')}</span>
           <span class="num"><b>${money(s.total_c)}</b></span>
-          <span class="meta">${s.status === 'void' ? `<span class="pill bad">Undone: ${esc(s.void_reason)}</span>`
+          <span class="meta">${s.customer_name ? esc(s.customer_name) + ' · ' : ''}${s.status === 'void' ? `<span class="pill bad">Undone: ${esc(s.void_reason)}</span>`
             : (s.pay === 'gcash' ? 'GCash ' + esc(s.gcash_ref) : 'Cash')}${s.tickets.length ? ' · <span class="mono">' + s.tickets.map(t => t.ticket_no).join(' ') + '</span>' : ''}</span>
           ${s.status === 'paid' ? `<button class="icon-btn" data-undo="${s.sale_id}" aria-label="Undo this sale" title="Undo this sale">${icon('undo')}</button>` : '<span></span>'}</li>`).join('')}</ol>`
         : `<div class="empty">${icon('chart')}<p>No sales yet today. Your first sale will show up here.</p></div>`}`;
@@ -113,12 +117,14 @@
   function confirmPay() {
     const ls = lines(), t = total();
     if (!ls.length || !canConfirm()) return;
-    const r = S.recordSale({ booth: sess.booth, staff: sess, lines: ls, total: t, pay });
+    const customer = cust ? CS.customer.commit(cust) : null;
+    const r = S.recordSale({ booth: sess.booth, staff: sess, lines: ls, total: t, pay, customer });
+    cust = null; S.set(custKey, null);
     const change = pay.method === 'cash' ? pay.tendered - t : 0;
     cart = {}; S.set(cartKey, cart); pay = null; render(); CS.sync.run();
     openSheet(`<div class="done">
       <div class="sheet-head"><span class="done-mark">${icon('check')}</span><button class="x" data-close aria-label="Close">${icon('x')}</button></div>
-      <div><p class="h2">Paid!</p><p class="sub">${money(t)} · ${r.sale.pay === 'gcash' ? 'GCash ref ' + esc(r.sale.gcash_ref) : 'Cash'} · ${time(r.sale.ts)}</p></div>
+      <div><p class="h2">Paid!</p><p class="sub">${customer ? esc(customer.name) + ' · ' : ''}${money(t)} · ${r.sale.pay === 'gcash' ? 'GCash ref ' + esc(r.sale.gcash_ref) : 'Cash'} · ${time(r.sale.ts)}</p></div>
       ${change ? `<div class="change ok"><p class="label">Give back</p><p class="huge-num">${money(change)}</p></div>` : ''}
       ${r.tickets.length ? `<div><p class="h3" style="margin-bottom:var(--s-2)">Tell the customer their ticket number</p>
         <ol class="tickets">${r.tickets.map(k => `<li><span class="frame">${k.ticket_no}</span><span class="code mono">${k.code}</span>
@@ -140,9 +146,9 @@
   }
 
   function exportToday() {
-    const rows = [['sale_id', 'date', 'time', 'event_id', 'booth', 'item', 'qty', 'line_total', 'sale_total', 'payment', 'ref', 'status']];
+    const rows = [['sale_id', 'date', 'time', 'event_id', 'booth', 'item', 'qty', 'line_total', 'sale_total', 'payment', 'ref', 'status', 'customer']];
     S.salesToday(sess.booth).forEach(s => s.items.forEach(i => rows.push([s.sale_id, today(new Date(s.ts)), time(s.ts), s.event_id || '', s.booth,
-      i.name || (bySku[i.sku] || { name: i.sku }).name, i.qty, (i.price_c * i.qty / 100).toFixed(2), (s.total_c / 100).toFixed(2), s.pay, s.gcash_ref, s.status])));
+      i.name || (bySku[i.sku] || { name: i.sku }).name, i.qty, (i.price_c * i.qty / 100).toFixed(2), (s.total_c / 100).toFixed(2), s.pay, s.gcash_ref, s.status, s.customer_name || ''])));
     CS.csv.download(`contactsheet-${sess.booth}-${today()}.csv`, CS.csv.write(rows));
     toast('Saved. Send this file to your moderator.');
   }
@@ -154,7 +160,12 @@
     if (d.sku) setQty(d.sku, (cart[d.sku] || 0) + 1);
     else if (d.inc) setQty(d.inc, (cart[d.inc] || 0) + 1);
     else if (d.dec) setQty(d.dec, (cart[d.dec] || 0) - 1);
-    else if ('clear' in d) { cart = {}; S.set(cartKey, cart); render(); closeSheet(); }
+    else if ('clear' in d) { cart = {}; cust = null; S.set(custKey, null); S.set(cartKey, cart); render(); closeSheet(); }
+    else if ('cust' in d) CS.customer.open(cust, c => {
+      cust = c; S.set(custKey, c); render();
+      if (innerWidth < 900) showCart(); else closeSheet();
+      if (c) toast(`Customer: ${c.name}`);
+    });
     else if ('openCart' in d) showCart();
     else if ('charge' in d) { pay = { method: 'cash', tendered: 0, ref: '', total: total() }; showPay(); }
     else if (d.method) { pay.method = d.method; showPay(); }

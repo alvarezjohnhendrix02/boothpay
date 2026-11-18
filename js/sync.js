@@ -21,7 +21,7 @@ CS.sync = (function () {
     const d = r.data || {};
     if (r.tab === 'SaleItems') return `SaleItems:${d.sale_id}:${d.sku}`;
     if (r.tab === 'Tickets') return `Tickets:${d.sale_id}:${d.ticket_no}`;
-    return `${r.tab}:${d.sale_id || d.close_id || d.ts}`;
+    return `${r.tab}:${d.sale_id || d.close_id || d.customer_id || d.ts}`;
   }
 
   async function call(op, extra) {
@@ -38,16 +38,19 @@ CS.sync = (function () {
     return j;
   }
 
+  // Tabs that need a newer Code.gs. Rows for them wait on the phone until the Sheet script is updated.
+  const NEED = { CloseOuts: 2, Customers: 3 };
+  const fits = r => (NEED[r.tab] || 1) <= S.get('sync.v', 0) || !NEED[r.tab];
+
   async function pushOutbox() {
     for (;;) {
       const box = S.get('outbox', []);
-      // A Code.gs older than v2 would silently skip cash counts, so hold those back until it is updated.
-      let ready = S.get('sync.v', 0) >= 2 ? box : box.filter(r => r.tab !== 'CloseOuts');
+      const ready = box.filter(fits);
       st.oldSheet = false;
       if (!ready.length && box.length) {
         const p = await call('ping');
         if (p.v) S.set('sync.v', p.v);
-        if ((p.v || 0) >= 2) continue;
+        if (box.some(fits)) continue;
         st.oldSheet = true; return;
       }
       if (!ready.length) return;
@@ -57,6 +60,13 @@ CS.sync = (function () {
       const sent = new Set(batch.map(rowKey));
       S.set('outbox', S.get('outbox', []).filter(r => !sent.has(rowKey(r))));
     }
+  }
+
+  // Everyone the Sheet knows, so a name typed at one booth is suggested at all booths. Every 2 minutes is plenty.
+  async function pullCustomers() {
+    if (S.get('sync.v', 0) < 3 || Date.now() - S.get('cust.pulled', 0) < 120000) return;
+    const j = await call('customers');
+    S.set('remote.customers', j.customers || []); S.set('cust.pulled', Date.now());
   }
 
   // Booth/item/PIN/event setup. The setup file still works; this keeps phones current without it.
@@ -94,6 +104,7 @@ CS.sync = (function () {
         await pushSetup();
         await pullSales(); pulled = true;
       } else setupChanged = await pullSetup();
+      await pullCustomers();
       st.err = ''; st.delay = EVERY; S.set('sync.last', U.now());
     } catch (e) {
       st.err = e.message || String(e);
@@ -115,7 +126,7 @@ CS.sync = (function () {
     const s = status();
     if (!s.configured) return { text: s.unsent ? `${s.unsent} saved on this phone` : 'Ready to sell', ok: !s.unsent };
     if (s.busy) return { text: 'Syncing…', ok: false };
-    if (s.oldSheet && !s.err) return { text: 'Cash count waiting · update Sheet', ok: false };
+    if (s.oldSheet && !s.err) return { text: 'Some records waiting · update Sheet', ok: false };
     if (s.err) return { text: s.unsent ? `${s.unsent} waiting · ${s.err === 'No internet' ? 'offline' : 'not sent'}` : 'Sheet not reached', ok: false };
     return { text: s.unsent ? `${s.unsent} waiting` : 'Synced', ok: !s.unsent };
   }

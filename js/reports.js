@@ -7,14 +7,14 @@ CS.report = (function () {
     S.allSales().forEach(s => {
       seen.add(s.sale_id);
       if (s.status !== 'paid') return;
-      out.push({ id: s.sale_id, ts: s.ts, event_id: s.event_id || '', booth: s.booth, total_c: s.total_c, pay: s.pay, source: 'pos',
+      out.push({ id: s.sale_id, ts: s.ts, event_id: s.event_id || '', booth: s.booth, total_c: s.total_c, pay: s.pay, source: 'pos', customer_id: s.customer_id || '', customer_name: s.customer_name || '',
         items: s.items.map(i => ({ name: i.name || S.productName(i.sku), qty: i.qty, total_c: i.price_c * i.qty })) });
     });
     S.get('remote.sales', []).forEach(s => { // every booth's sales, from the Google Sheet
       if (seen.has(s.sale_id)) return;
       seen.add(s.sale_id);
       if (s.status === 'void') return;
-      out.push({ id: s.sale_id, ts: s.ts, event_id: s.event_id || '', booth: s.booth, total_c: s.total_c, pay: s.pay, source: 'sheet',
+      out.push({ id: s.sale_id, ts: s.ts, event_id: s.event_id || '', booth: s.booth, total_c: s.total_c, pay: s.pay, source: 'sheet', customer_id: s.customer_id || '',
         items: s.items.map(i => ({ name: i.name || S.productName(i.sku), qty: i.qty, total_c: i.price_c * i.qty })) });
     });
     S.imports().forEach(b => b.rows.forEach(r => {
@@ -63,6 +63,27 @@ CS.views.reports = (function () {
         <td><span class="pill ${off ? 'bad' : 'ok'}">${v === 0 ? 'Exact' : (v < 0 ? 'Short ' : 'Over ') + money(Math.abs(v))}</span></td>
         <td class="sub">${esc(c.note || '')}</td></tr>`; }).join('')}</tbody></table></div>
       <p class="sub">Should be = starting cash + cash sales. Differences over ₱50 are marked to check.</p></section>`;
+  }
+
+  // Customers who gave a name: how many, how many came back, and which grades buy.
+  const custOf = r => (r.customer_id && CS.customer.byId(r.customer_id)) || null;
+  function custCols(r) { const c = custOf(r); return c ? [c.name, CS.customer.gradeLabel(c.grade), c.section || ''] : [r.customer_name || '', '', '']; }
+  function custPanel(rows) {
+    const named = rows.filter(r => r.customer_id);
+    if (!named.length) return '';
+    const per = {}; named.forEach(r => { per[r.customer_id] = (per[r.customer_id] || 0) + 1; });
+    const people = Object.keys(per).length, back = Object.values(per).filter(n => n > 1).length;
+    const grades = {}; Object.keys(per).forEach(id => { const c = CS.customer.byId(id); const g = c ? CS.customer.gradeLabel(c.grade) : 'Unknown'; grades[g] = (grades[g] || 0) + 1; });
+    const max = Math.max(...Object.values(grades));
+    const top = Object.entries(per).sort((a, b) => b[1] - a[1]).slice(0, 5).filter(e => e[1] > 1);
+    return `<section class="panel"><p class="h3">${icon('user')} Customers</p>
+      <div class="row"><span>People who gave their name</span><b class="num">${people}</b></div>
+      <div class="row"><span>Came back more than once</span><b class="num">${back}</b></div>
+      <div class="row"><span>Sales with no name</span><b class="num">${rows.length - named.length}</b></div>
+      <ul class="hbars">${Object.entries(grades).sort((a, b) => b[1] - a[1]).map(([g, n]) => `<li><span class="hb-name">${esc(g)}</span>
+        <span class="hb-track"><i style="width:${(n / max * 100).toFixed(1)}%;background:var(--pink)"></i></span><span class="num hb-val"><b>${n}</b></span></li>`).join('')}</ul>
+      ${top.length ? `<p class="sub">Most visits: ${top.map(([id, n]) => { const c = CS.customer.byId(id); return `${esc(c ? CS.customer.label(c) : id)} (${n})`; }).join(', ')}</p>` : ''}
+    </section>`;
   }
 
   const group = (rows, key, val = r => r.total_c) => rows.reduce((m, r) => { const k = key(r); m[k] = (m[k] || 0) + val(r); return m; }, {});
@@ -137,6 +158,7 @@ CS.views.reports = (function () {
         ${cashPanel()}
         <section class="panel"><p class="h3">By booth</p>
           ${bars(group(rows, r => r.booth), k => `${badge(boothOf(k), 'sm')}${esc(boothOf(k).name)}`, k => boothOf(k).color)}</section>
+        ${custPanel(rows)}
         <section class="panel"><p class="h3">How people paid</p>
           ${bars(group(rows, r => r.pay || 'unknown'), k => PAY[k] || k, k => PAY_COLOR[k] || 'var(--graphite)')}</section>
         <section class="panel span2"><p class="h3">Sales by hour <span class="sub">(pesos)</span></p><div class="chart-wrap">${hourChart(rows)}</div></section>
@@ -151,9 +173,9 @@ CS.views.reports = (function () {
   }
 
   function exportAll() {
-    const out = [['date', 'time', 'event', 'booth', 'item', 'qty', 'amount', 'payment', 'source', 'transaction_id']];
+    const out = [['date', 'time', 'event', 'booth', 'item', 'qty', 'amount', 'payment', 'source', 'transaction_id', 'customer', 'grade', 'section']];
     filtered().sort((a, b) => a.ts.localeCompare(b.ts)).forEach(r => r.items.forEach(i => out.push([U.dayOf(r.ts), time(r.ts), evName(r.event_id), boothOf(r.booth).name,
-      i.name, i.qty, (i.total_c / 100).toFixed(2), PAY[r.pay] || r.pay, SRC[r.source] || r.source, r.id])));
+      i.name, i.qty, (i.total_c / 100).toFixed(2), PAY[r.pay] || r.pay, SRC[r.source] || r.source, r.id, ...custCols(r)])));
     CS.csv.download(`contactsheet-sales-${U.today()}.csv`, CS.csv.write(out));
   }
   function exportSummary() {

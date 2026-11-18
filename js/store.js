@@ -63,10 +63,10 @@ CS.store = (function () {
   const outboxCount = () => get('outbox', []).filter(r => r.tab === 'Sales').length;
 
   // lines: [{p: product, q: qty}], pay: {method, tendered, ref}
-  function recordSale({ booth: boothCode, staff, lines, total, pay }) {
+  function recordSale({ booth: boothCode, staff, lines, total, pay, customer }) {
     const ts = U.now(), sale_id = U.id(boothCode), ev = activeEvent();
     const sale = {
-      sale_id, ts, event_id: ev ? ev.event_id : '', booth: boothCode, staff_id: staff.staff_id, customer_id: '',
+      sale_id, ts, event_id: ev ? ev.event_id : '', booth: boothCode, staff_id: staff.staff_id, customer_id: customer ? customer.customer_id : '',
       subtotal_c: total, discount_c: 0, total_c: total, pay: pay.method,
       gcash_ref: pay.method === 'gcash' ? pay.ref : '',
       tendered_c: pay.method === 'cash' ? pay.tendered : total,
@@ -79,7 +79,7 @@ CS.store = (function () {
     });
     const day = `sales.${boothCode}.${U.today()}`;
     const list = get(day, []);
-    list.push({ ...sale, items, tickets });
+    list.push({ ...sale, customer_name: customer ? CS.customer.label(customer) : '', items, tickets });
     const saved = set(day, list);
     push([{ tab: 'Sales', data: sale }, ...items.map(d => ({ tab: 'SaleItems', data: d })), ...tickets.map(d => ({ tab: 'Tickets', data: d }))]);
     return { sale, items, tickets, saved };
@@ -124,7 +124,7 @@ CS.store = (function () {
   }
 
   return {
-    get, set, catalog, saveCatalog, booth, productName,
+    get, set, push, catalog, saveCatalog, booth, productName,
     events, saveEvents, activeEvent, setActiveEvent, boothsForSale,
     session, deviceBooth, setDeviceBooth, login, logout, setPin, isDefaultPin,
     recordSale, salesToday, allSales, voidSale, outboxCount, recordCloseout, closeoutsToday, allCloseouts,

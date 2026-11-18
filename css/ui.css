@@ -192,6 +192,18 @@ dialog.sheet::backdrop { background: rgb(24 23 26 / .5); }
 .panel { background: var(--card); border-radius: var(--r-2); box-shadow: var(--lift); padding: var(--s-4) var(--s-5); display: grid; gap: var(--s-3); align-content: start; }
 .panel .h3 { display: flex; align-items: center; gap: var(--s-2); }
 
+/* customer */
+.cust-row { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-3) 0; border-bottom: var(--hair); }
+.cust-row > span { display: grid; flex: 1; min-width: 0; }
+.cust-row .btn .sub { font-weight: 400; }
+.sugg li + li { margin-top: var(--s-2); }
+.sugg button { display: flex; align-items: center; gap: var(--s-3); width: 100%; min-height: 52px; padding: var(--s-2) var(--s-4); border-radius: var(--r-1); background: var(--fix-wash); text-align: left; }
+.sugg button > span { display: grid; }
+.grades { display: grid; grid-template-columns: repeat(6, 1fr); gap: var(--s-2); margin-top: var(--s-1); }
+.grades button { min-height: 48px; border-radius: var(--r-1); border: 2px solid var(--rule); background: var(--card); font-weight: 700; }
+.grades button:nth-child(n+7) { grid-column: span 3; }
+.grades button[aria-checked="true"] { border-color: var(--ink); background: var(--ink); color: var(--on-ink); }
+
 /* close day */
 .close { max-width: 640px; }
 .denoms li { display: grid; grid-template-columns: 72px auto 1fr; gap: var(--s-3); align-items: center; padding: var(--s-2) 0; border-bottom: var(--hair); }

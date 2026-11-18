@@ -29,7 +29,7 @@ Do this once, on a laptop, with the Google account that should own the sales rec
 ## 4. Connect ContactSheet
 1. Open ContactSheet → **I'm the moderator** → **Sync & phones** (top right).
 2. Paste the Web app URL and type the same sync key → **Save & test**.
-   You should see "Connected to …". Tabs named Sales, SaleItems, Tickets, Voids, CloseOuts and Setup appear in the Sheet as data arrives.
+   You should see "Connected to …". Tabs named Sales, SaleItems, Tickets, Voids, Customers, CloseOuts and Setup appear in the Sheet as data arrives.
 3. Tap **Download setup file** and send it to every booth phone. On each phone: open ContactSheet →
    **Got a setup file? Load it**. The file carries the Sheet connection, so you only do this once per phone.
 
@@ -49,8 +49,9 @@ Do this once, on a laptop, with the Google account that should own the sales rec
 4. **Save**, then **Deploy → Manage deployments → pencil (edit) → Version: New version → Deploy**.
    The web app URL stays the same, so phones need nothing new.
 
-Version 2 adds the **CloseOuts** tab (end-of-day cash counts). Until you update, cash counts wait safely
-on the booth phones (their top bar says "Cash count waiting · update Sheet") and are sent once you do.
+Version 2 adds the **CloseOuts** tab (end-of-day cash counts); version 3 adds the **Customers** tab (names and sections).
+Until you update, those records wait safely on the booth phones (their top bar says "Some records waiting · update Sheet")
+and are sent once you do. Sales keep syncing either way.
 
 ## If something goes wrong
 | You see | Do this |

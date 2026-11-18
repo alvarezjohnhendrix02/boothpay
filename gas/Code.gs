@@ -7,7 +7,7 @@
  * 3. Paste the web app URL and the same key in ContactSheet → Moderator → Sync & phones.
  */
 const SYNC_KEY = 'CHANGE-ME';
-const VERSION = 2; // 2 = adds end-of-day cash counts (CloseOuts tab)
+const VERSION = 3; // 2 = end-of-day cash counts (CloseOuts) · 3 = customers (Customers tab)
 
 // Columns per tab. Writes are append-only; a row whose _key already exists is skipped.
 const TABS = {
@@ -15,6 +15,7 @@ const TABS = {
   SaleItems: ['sale_id', 'sku', 'name', 'qty', 'price_c', 'cost_c'],
   Tickets: ['ticket_no', 'code', 'sale_id', 'booth', 'sku', 'qty', 'status', 'ts_created'],
   Voids: ['sale_id', 'ts', 'booth', 'reason', 'staff_id'],
+  Customers: ['customer_id', 'ts', 'name', 'grade', 'section', 'type', 'booth'],
   CloseOuts: ['close_id', 'ts', 'event_id', 'booth', 'staff_id', 'float_c', 'cash_sales_c', 'expected_cash_c', 'counted_cash_c', 'variance_c', 'variance_php', 'gcash_total_c', 'denoms', 'note'],
 };
 const DATE_FIELDS = { ts: 1, ts_created: 1 };
@@ -34,6 +35,7 @@ function doPost(e) {
       case 'getSetup': return out(getSetup());
       case 'putSetup': return out(putSetup(body.setup));
       case 'sales': return out(sales());
+      case 'customers': return out(customers());
       default: return out({ ok: false, why: 'Unknown op' });
     }
   } catch (err) {
@@ -110,6 +112,11 @@ function getSetup() {
   return { ok: true, setup: json ? JSON.parse(json) : null };
 }
 
+function customers() {
+  const list = read('Customers').map(c => ({ customer_id: String(c.customer_id), ts: c.ts, name: String(c.name || ''), grade: String(c.grade || ''), section: String(c.section || '') }));
+  return { ok: true, customers: list };
+}
+
 function read(name) {
   const sh = SpreadsheetApp.getActive().getSheetByName(name);
   if (!sh || sh.getLastRow() < 2) return [];
@@ -129,7 +136,7 @@ function sales() {
   read('SaleItems').forEach(i => { (items[i.sale_id] = items[i.sale_id] || []).push({ sku: String(i.sku), name: String(i.name), qty: Number(i.qty) || 1, price_c: Number(i.price_c) || 0 }); });
   const list = read('Sales').map(s => ({
     sale_id: String(s.sale_id), ts: s.ts, event_id: String(s.event_id || ''), booth: String(s.booth), total_c: Number(s.total_c) || 0,
-    pay: String(s.pay || ''), gcash_ref: String(s.gcash_ref || ''), status: voids[s.sale_id] ? 'void' : String(s.status || 'paid'),
+    customer_id: String(s.customer_id || ''), pay: String(s.pay || ''), gcash_ref: String(s.gcash_ref || ''), status: voids[s.sale_id] ? 'void' : String(s.status || 'paid'),
     void_reason: voids[s.sale_id] || '', items: items[s.sale_id] || [], device: String(s._device || ''),
   }));
   const closeouts = read('CloseOuts').map(c => ({
