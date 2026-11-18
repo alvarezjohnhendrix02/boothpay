@@ -7,7 +7,7 @@
  * 3. Paste the web app URL and the same key in ContactSheet → Moderator → Sync & phones.
  */
 const SYNC_KEY = 'CHANGE-ME';
-const VERSION = 3; // 2 = end-of-day cash counts (CloseOuts) · 3 = customers (Customers tab)
+const VERSION = 4; // 2 = cash counts (CloseOuts) · 3 = customers (Customers) · 4 = stock (Moves) + expenses (Expenses)
 
 // Columns per tab. Writes are append-only; a row whose _key already exists is skipped.
 const TABS = {
@@ -15,10 +15,12 @@ const TABS = {
   SaleItems: ['sale_id', 'sku', 'name', 'qty', 'price_c', 'cost_c'],
   Tickets: ['ticket_no', 'code', 'sale_id', 'booth', 'sku', 'qty', 'status', 'ts_created'],
   Voids: ['sale_id', 'ts', 'booth', 'reason', 'staff_id'],
+  Moves: ['move_id', 'ts', 'booth', 'stock_id', 'name', 'qty', 'reason', 'ref_id', 'staff_id', 'note'],
+  Expenses: ['exp_id', 'ts', 'ts_v', 'date', 'event_id', 'booth', 'type', 'item', 'qty', 'unit_c', 'amount_c', 'amount_php', 'paid_by', 'note', 'status'],
   Customers: ['customer_id', 'ts', 'name', 'grade', 'section', 'type', 'booth'],
   CloseOuts: ['close_id', 'ts', 'event_id', 'booth', 'staff_id', 'float_c', 'cash_sales_c', 'expected_cash_c', 'counted_cash_c', 'variance_c', 'variance_php', 'gcash_total_c', 'denoms', 'note'],
 };
-const DATE_FIELDS = { ts: 1, ts_created: 1 };
+const DATE_FIELDS = { ts: 1, ts_created: 1, ts_v: 1 };
 const META = ['_key', '_device', '_received'];
 
 function doGet() { return out({ ok: true, app: 'contactsheet' }); }
@@ -36,6 +38,7 @@ function doPost(e) {
       case 'putSetup': return out(putSetup(body.setup));
       case 'sales': return out(sales());
       case 'customers': return out(customers());
+      case 'stock': return out({ ok: true, moves: moves(body.booth) });
       default: return out({ ok: false, why: 'Unknown op' });
     }
   } catch (err) {
@@ -83,6 +86,7 @@ function append(rows, device) {
         keys.add(k);
         const d = Object.assign({}, r.data);
         if (name === 'Sales') d.total_php = (Number(d.total_c) || 0) / 100;
+        if (name === 'Expenses') d.amount_php = (Number(d.amount_c) || 0) / 100;
         if (name === 'CloseOuts') d.variance_php = (Number(d.variance_c) || 0) / 100;
         values.push([k, device, now].concat(cols.map(h => cell(h, d[h]))));
       });
@@ -110,6 +114,23 @@ function getSetup() {
   if (!sh || sh.getLastRow() < 2) return { ok: true, setup: null };
   const json = sh.getRange(2, 2, sh.getLastRow() - 1, 1).getValues().map(r => r[0]).join('');
   return { ok: true, setup: json ? JSON.parse(json) : null };
+}
+
+function moves(booth) {
+  return read('Moves').filter(m => !booth || String(m.booth) === String(booth)).map(m => ({ move_id: String(m.move_id), ts: m.ts, booth: String(m.booth),
+    stock_id: String(m.stock_id), name: String(m.name || ''), qty: Number(m.qty) || 0, reason: String(m.reason || ''), ref_id: String(m.ref_id || ''), note: String(m.note || '') }));
+}
+
+// Each change to an expense is a new row; the newest row of each expense is the current one (a delete has status "void").
+function expenses() {
+  const latest = {};
+  read('Expenses').forEach(x => {
+    const e = { exp_id: String(x.exp_id), ts: x.ts, ts_v: x.ts_v || x.ts, date: String(x.date || ''), event_id: String(x.event_id || ''), booth: String(x.booth || ''),
+      type: String(x.type || 'other'), item: String(x.item || ''), qty: Number(x.qty) || 0, unit_c: Number(x.unit_c) || 0, amount_c: Number(x.amount_c) || 0,
+      paid_by: String(x.paid_by || ''), note: String(x.note || ''), status: String(x.status || 'ok') };
+    if (!latest[e.exp_id] || e.ts_v >= latest[e.exp_id].ts_v) latest[e.exp_id] = e;
+  });
+  return Object.values(latest);
 }
 
 function customers() {
@@ -144,5 +165,5 @@ function sales() {
     float_c: Number(c.float_c) || 0, cash_sales_c: Number(c.cash_sales_c) || 0, expected_cash_c: Number(c.expected_cash_c) || 0,
     counted_cash_c: Number(c.counted_cash_c) || 0, variance_c: Number(c.variance_c) || 0, gcash_total_c: Number(c.gcash_total_c) || 0, note: String(c.note || ''),
   }));
-  return { ok: true, sales: list, closeouts, ts: new Date().toISOString() };
+  return { ok: true, sales: list, closeouts, moves: moves(), expenses: expenses(), ts: new Date().toISOString() };
 }

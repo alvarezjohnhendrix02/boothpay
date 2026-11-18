@@ -124,7 +124,7 @@ dialog.sheet::backdrop { background: rgb(24 23 26 / .5); }
   .cartbar { display: none !important; }
 }
 .howto { display: flex; flex-wrap: wrap; gap: var(--s-2) var(--s-4); padding: var(--s-4) var(--s-4) 0; font-size: var(--t-14); color: var(--graphite); font-weight: 600; }
-.howto b { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--lemon); color: var(--on-pastel); font-size: var(--t-12); margin-right: 6px; }
+.howto > span > b:first-child { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--lemon); color: var(--on-pastel); font-size: var(--t-12); margin-right: 6px; }
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: var(--s-3); padding: var(--s-4); }
 .tile { position: relative; background: var(--card); border-radius: var(--r-2); box-shadow: var(--lift); border-top: 8px solid var(--booth); min-height: 128px; padding: var(--s-4); text-align: left; display: flex; flex-direction: column; justify-content: space-between; gap: var(--s-2); transition: transform var(--dur) var(--ease), background var(--dur); }
 .tile:active { transform: scale(.97); }
@@ -203,6 +203,16 @@ dialog.sheet::backdrop { background: rgb(24 23 26 / .5); }
 .grades button { min-height: 48px; border-radius: var(--r-1); border: 2px solid var(--rule); background: var(--card); font-weight: 700; }
 .grades button:nth-child(n+7) { grid-column: span 3; }
 .grades button[aria-checked="true"] { border-color: var(--ink); background: var(--ink); color: var(--on-ink); }
+
+/* stock */
+.stock-list { display: grid; gap: var(--s-3); }
+.stock-list li { background: var(--card); border-radius: var(--r-2); box-shadow: var(--lift); padding: var(--s-4); display: grid; grid-template-columns: 1fr auto; gap: var(--s-3); border-left: 6px solid var(--mint); }
+.stock-list li.low { border-left-color: var(--lemon); } .stock-list li.out { border-left-color: var(--coral); }
+.stock-list li > div:first-child { display: grid; gap: 4px; justify-items: start; }
+.stock-n { text-align: right; } .stock-n .big-num { font-size: var(--t-36); }
+.stock-acts { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: var(--s-2); }
+.big-input { font-size: var(--t-36) !important; text-align: center; min-height: 72px !important; }
+.tile .pill { margin-top: 4px; }
 
 /* close day */
 .close { max-width: 640px; }

@@ -82,6 +82,7 @@ CS.store = (function () {
     list.push({ ...sale, customer_name: customer ? CS.customer.label(customer) : '', items, tickets });
     const saved = set(day, list);
     push([{ tab: 'Sales', data: sale }, ...items.map(d => ({ tab: 'SaleItems', data: d })), ...tickets.map(d => ({ tab: 'Tickets', data: d }))]);
+    if (CS.stock) CS.stock.forSale(lines, boothCode, sale_id);
     return { sale, items, tickets, saved };
   }
   const salesToday = boothCode => get(`sales.${boothCode}.${U.today()}`, []);
@@ -107,6 +108,8 @@ CS.store = (function () {
     s.status = 'void'; s.void_reason = reason;
     set(k, list);
     push([{ tab: 'Voids', data: { sale_id: saleId, ts: U.now(), booth: boothCode, reason, staff_id: staff.staff_id } }]);
+    const cat = catalog().products;
+    if (CS.stock) CS.stock.forSale(s.items.map(i => ({ p: cat.find(p => p.sku === i.sku), q: i.qty })).filter(l => l.p), boothCode, saleId, 1);
     return true;
   }
 

@@ -21,6 +21,8 @@ CS.sync = (function () {
     const d = r.data || {};
     if (r.tab === 'SaleItems') return `SaleItems:${d.sale_id}:${d.sku}`;
     if (r.tab === 'Tickets') return `Tickets:${d.sale_id}:${d.ticket_no}`;
+    if (r.tab === 'Moves') return `Moves:${d.move_id}`;
+    if (r.tab === 'Expenses') return `Expenses:${d.exp_id}:${d.status}:${d.ts_v}`;
     return `${r.tab}:${d.sale_id || d.close_id || d.customer_id || d.ts}`;
   }
 
@@ -39,7 +41,7 @@ CS.sync = (function () {
   }
 
   // Tabs that need a newer Code.gs. Rows for them wait on the phone until the Sheet script is updated.
-  const NEED = { CloseOuts: 2, Customers: 3 };
+  const NEED = { CloseOuts: 2, Customers: 3, Moves: 4, Expenses: 4 };
   const fits = r => (NEED[r.tab] || 1) <= S.get('sync.v', 0) || !NEED[r.tab];
 
   async function pushOutbox() {
@@ -63,6 +65,16 @@ CS.sync = (function () {
   }
 
   // Everyone the Sheet knows, so a name typed at one booth is suggested at all booths. Every 2 minutes is plenty.
+  // Stock moves for this booth from every device (two phones at one booth stay in step). Once a minute.
+  async function pullStock() {
+    const s = S.session();
+    if (!s || s.role === 'admin' || S.get('sync.v', 0) < 4 || Date.now() - S.get('stock.pulled', 0) < 60000) return false;
+    const j = await call('stock', { booth: s.booth });
+    const before = JSON.stringify(S.get('remote.moves', []).length);
+    S.set('remote.moves', j.moves || []); S.set('stock.pulled', Date.now());
+    return before !== JSON.stringify((j.moves || []).length);
+  }
+
   async function pullCustomers() {
     if (S.get('sync.v', 0) < 3 || Date.now() - S.get('cust.pulled', 0) < 120000) return;
     const j = await call('customers');
@@ -88,7 +100,9 @@ CS.sync = (function () {
   }
   async function pullSales() {
     const j = await call('sales');
-    S.set('remote.sales', j.sales || []); S.set('remote.closeouts', j.closeouts || []); S.set('sync.pulled', j.ts || U.now());
+    S.set('remote.sales', j.sales || []); S.set('remote.closeouts', j.closeouts || []);
+    if (j.moves) S.set('remote.moves', j.moves);
+    if (j.expenses) S.set('remote.expenses', j.expenses); S.set('sync.pulled', j.ts || U.now());
     if (j.v) S.set('sync.v', j.v);
   }
 
@@ -96,7 +110,7 @@ CS.sync = (function () {
     if (st.busy || !configured()) { emit({}); return; }
     clearTimeout(st.timer);
     st.busy = true; emit({});
-    let setupChanged = false, pulled = false;
+    let setupChanged = false, pulled = false, stock = false;
     try {
       await pushOutbox();
       if (isAdmin()) {
@@ -105,6 +119,7 @@ CS.sync = (function () {
         await pullSales(); pulled = true;
       } else setupChanged = await pullSetup();
       await pullCustomers();
+      stock = await pullStock();
       st.err = ''; st.delay = EVERY; S.set('sync.last', U.now());
     } catch (e) {
       st.err = e.message || String(e);
@@ -112,7 +127,7 @@ CS.sync = (function () {
     } finally {
       st.busy = false;
       st.timer = setTimeout(run, st.delay);
-      emit({ setupChanged, pulled });
+      emit({ setupChanged, pulled, stock });
     }
   }
   const emit = detail => document.dispatchEvent(new CustomEvent('cs-sync', { detail }));

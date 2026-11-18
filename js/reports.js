@@ -51,6 +51,29 @@ CS.views.reports = (function () {
     });
     return Object.values(latest).sort((a, b) => a.ts.localeCompare(b.ts));
   }
+  function moneyPanel(rows) {
+    const ex = CS.expenses.live().filter(x => (f.event === '*' || (x.event_id || '') === f.event) && (f.booth === '*' || (x.booth || '') === f.booth) && (f.day === '*' || x.date === f.day));
+    if (!ex.length) return '';
+    const sales = group(rows, r => r.booth), cost = group(ex, x => x.booth || '', x => x.amount_c);
+    const codes = [...new Set([...Object.keys(sales), ...Object.keys(cost)])].sort((a, b) => (a === '') - (b === ''));
+    const tS = rows.reduce((a, r) => a + r.total_c, 0), tE = ex.reduce((a, x) => a + x.amount_c, 0);
+    const pl = v => `<b class="${v < 0 ? 'bad-text' : 'ok-text'}">${v < 0 ? '−' : ''}${money(Math.abs(v))}</b>`;
+    return `<section class="panel span2"><p class="h3">${icon('chart')} Sales, expenses and profit</p>
+      <div class="table-wrap"><table class="table"><thead><tr><th>Booth</th><th class="r">Sales</th><th class="r">Expenses</th><th class="r">Profit</th></tr></thead>
+      <tbody>${codes.map(c => `<tr><td>${c ? `<span class="mini">${badge(boothOf(c), 'sm')}${esc(boothOf(c).name)}</span>` : 'Whole club (shared costs)'}</td>
+        <td class="r num">${money(sales[c] || 0)}</td><td class="r num">${money(cost[c] || 0)}</td><td class="r num">${pl((sales[c] || 0) - (cost[c] || 0))}</td></tr>`).join('')}</tbody>
+      <tfoot><tr><td><b>Total</b></td><td class="r num"><b>${money(tS)}</b></td><td class="r num"><b>${money(tE)}</b></td><td class="r num">${pl(tS - tE)}</td></tr></tfoot></table></div>
+      <p class="sub">Expenses come from the <b>Expenses</b> page. Whole-club costs are not split between booths.</p></section>`;
+  }
+  function stockPanel() {
+    const list = CS.stock.items().filter(s => f.booth === '*' || s.booth === f.booth);
+    if (!list.length) return '';
+    const hand = CS.stock.onHand(), low = list.filter(s => CS.stock.isLow(s, hand[s.stock_id] || 0));
+    return `<section class="panel"><p class="h3">${icon('sticker')} Stock left ${low.length ? `<span class="pill bad">${low.length} low</span>` : '<span class="pill ok">All OK</span>'}</p>
+      <ul class="hbars">${list.map(s => { const n = hand[s.stock_id] || 0, bad = CS.stock.isLow(s, n); return `<li><span class="hb-name">${badge(boothOf(s.booth), 'sm')}${esc(s.name)}</span>
+        <span class="sub">${bad ? (n <= 0 ? 'Out' : 'Low') : ''}</span><span class="num hb-val"><b class="${bad ? 'bad-text' : ''}">${n}</b> <span class="sub">${esc(s.unit)}</span></span></li>`; }).join('')}</ul></section>`;
+  }
+
   function cashPanel() {
     const list = closeouts();
     if (!list.length) return '';
@@ -155,6 +178,8 @@ CS.views.reports = (function () {
         <div class="stat"><p class="label">Items sold</p><p class="big-num">${units}</p></div>
       </div>
       <div class="report-grid">
+        ${moneyPanel(rows)}
+        ${stockPanel()}
         ${cashPanel()}
         <section class="panel"><p class="h3">By booth</p>
           ${bars(group(rows, r => r.booth), k => `${badge(boothOf(k), 'sm')}${esc(boothOf(k).name)}`, k => boothOf(k).color)}</section>
