@@ -29,11 +29,11 @@
       <li><span class="nm">${esc(l.p.name)}</span><span class="amt num">${money(l.p.price_c * l.q)}</span>
         <span class="step"><button data-dec="${l.p.sku}" aria-label="One less ${esc(l.p.name)}">−</button><b class="num">${l.q}</b><button data-inc="${l.p.sku}" aria-label="One more ${esc(l.p.name)}">+</button></span>
         <span class="sub" style="text-align:right">${money(l.p.price_c)} each</span></li>`).join('')}</ul>
-      <div class="cust-row">${cust ? `${icon('user')}<span><b>${esc(cust.name)}</b><span class="sub">${esc(CS.customer.label(cust).slice(cust.name.length + 3))}</span></span><button class="link" data-cust>Change</button>`
-        : `<button class="btn ghost wide sm" data-cust>${icon('user')} Add customer name <span class="sub">(optional)</span></button>`}</div>
+      <div class="cust-row${cust ? '' : ' need'}">${cust ? `${icon('user')}<span><b>${esc(cust.name)}</b><span class="sub">${esc(CS.customer.details(cust))}</span></span><button class="link" data-cust>Change</button>`
+        : `${icon('user')}<span><b>Who is buying?</b><span class="sub">Name, grade and section are needed</span></span>`}</div>
       <div class="cart-foot"><span class="h3">Total</span><span class="big-num">${money(t)}</span></div>
       <div class="cart-actions">
-        <button class="btn go wide" data-charge>${icon('cash')} Charge ${money(t)}</button>
+        ${cust ? `<button class="btn go wide" data-charge>${icon('cash')} Charge ${money(t)}</button>` : `<button class="btn go wide" data-cust>${icon('user')} Add customer to continue</button>`}
         <button class="btn ghost wide" data-clear>Start over</button>
       </div>`;
   }
@@ -76,6 +76,12 @@
     if (name === 'close') CS.closeout.render($('#tab-close'), as);
     if (name === 'stock') CS.stock.render($('#tab-stock'), as);
     render();
+  }
+
+  function onCust(c) {
+    if (c !== 'cancel') { cust = c; S.set(custKey, c); if (c) toast(`Customer: ${c.name}`); }
+    render();
+    if (innerWidth < 900) showCart(); else closeSheet();
   }
 
   function renderToday() {
@@ -127,7 +133,7 @@
 
   function confirmPay() {
     const ls = lines(), t = total();
-    if (!ls.length || !canConfirm()) return;
+    if (!ls.length || !canConfirm() || !cust) return;
     const customer = cust ? CS.customer.commit(cust) : null;
     const r = S.recordSale({ booth: sess.booth, staff: sess, lines: ls, total: t, pay, customer });
     cust = null; S.set(custKey, null);
@@ -172,12 +178,9 @@
     else if (d.inc) setQty(d.inc, (cart[d.inc] || 0) + 1);
     else if (d.dec) setQty(d.dec, (cart[d.dec] || 0) - 1);
     else if ('clear' in d) { cart = {}; cust = null; S.set(custKey, null); S.set(cartKey, cart); render(); closeSheet(); }
-    else if ('cust' in d) CS.customer.open(cust, c => {
-      cust = c; S.set(custKey, c); render();
-      if (innerWidth < 900) showCart(); else closeSheet();
-      if (c) toast(`Customer: ${c.name}`);
-    });
+    else if ('cust' in d) CS.customer.open(cust, onCust);
     else if ('openCart' in d) showCart();
+    else if ('charge' in d && !cust) CS.customer.open(null, onCust);
     else if ('charge' in d) { pay = { method: 'cash', tendered: 0, ref: '', total: total() }; showPay(); }
     else if (d.method) { pay.method = d.method; showPay(); }
     else if (d.add) { pay.tendered += +d.add; showPay(); }

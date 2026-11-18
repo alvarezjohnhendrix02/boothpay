@@ -96,7 +96,7 @@ CS.views.reports = (function () {
     if (!named.length) return '';
     const per = {}; named.forEach(r => { per[r.customer_id] = (per[r.customer_id] || 0) + 1; });
     const people = Object.keys(per).length, back = Object.values(per).filter(n => n > 1).length;
-    const grades = {}; Object.keys(per).forEach(id => { const c = CS.customer.byId(id); const g = c ? CS.customer.gradeLabel(c.grade) : 'Unknown'; grades[g] = (grades[g] || 0) + 1; });
+    const grades = {}; Object.keys(per).forEach(id => { const c = CS.customer.byId(id); const g = c ? CS.customer.levelOf(c.grade) : 'Unknown'; grades[g] = (grades[g] || 0) + 1; });
     const max = Math.max(...Object.values(grades));
     const top = Object.entries(per).sort((a, b) => b[1] - a[1]).slice(0, 5).filter(e => e[1] > 1);
     return `<section class="panel"><p class="h3">${icon('user')} Customers</p>

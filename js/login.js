@@ -5,7 +5,7 @@
   if (sess) { location.replace(sess.role === 'admin' ? 'admin.html' : 'pos.html'); return; }
   let pin = '', lockTimer = 0;
 
-  $('#brandMark').innerHTML = icon('camera');
+  $('#brandMark').innerHTML = CS.ui.logo();
 
   function showEvent() {
     const ev = S.activeEvent(), el = $('#eventNow');

@@ -102,7 +102,8 @@ dialog.sheet::backdrop { background: rgb(24 23 26 / .5); }
 /* sign in */
 .login { max-width: 480px; margin: 0 auto; padding: var(--s-6) var(--s-4) var(--s-7); display: grid; gap: var(--s-5); }
 .brand { display: flex; align-items: center; gap: var(--s-3); }
-.brand .badge { background: var(--coral); color: var(--on-pastel); }
+.brand .badge { background: var(--coral); color: var(--on-pastel); padding: 4px; }
+.logo { width: 100%; height: 100%; display: block; }
 .event-now { display: flex; align-items: center; gap: var(--s-2); padding: var(--s-3) var(--s-4); border-radius: var(--r-1); background: var(--fix-wash); color: var(--fixer); font-weight: 600; font-size: var(--t-14); }
 .event-now.none { background: var(--wash); color: var(--graphite); }
 .dots { display: flex; gap: var(--s-4); justify-content: center; height: 24px; }
@@ -199,6 +200,8 @@ dialog.sheet::backdrop { background: rgb(24 23 26 / .5); }
 /* customer */
 .cust-row { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-3) 0; border-bottom: var(--hair); }
 .cust-row > span { display: grid; flex: 1; min-width: 0; }
+.cust-row.need { color: var(--amber); }
+.cust-row.need .sub { color: var(--amber); }
 .cust-row .btn .sub { font-weight: 400; }
 .sugg li + li { margin-top: var(--s-2); }
 .sugg button { display: flex; align-items: center; gap: var(--s-3); width: 100%; min-height: 52px; padding: var(--s-2) var(--s-4); border-radius: var(--r-1); background: var(--fix-wash); text-align: left; }
