@@ -21,7 +21,7 @@ CS.stock = (function () {
   function add(list) { // [{booth, stock_id, qty, reason, ref_id?, note?}]
     const who = S.session() || {};
     const rows = list.filter(x => x.qty).map(x => ({ move_id: 'M-' + U.today().slice(2).replace(/-/g, '') + '-' + U.rand(6), ts: U.now(), booth: x.booth,
-      stock_id: x.stock_id, name: (byId(x.stock_id) || {}).name || '', qty: x.qty, reason: x.reason, ref_id: x.ref_id || '', staff_id: who.staff_id || '', note: x.note || '' }));
+      stock_id: x.stock_id, name: (byId(x.stock_id) || {}).name || '', qty: x.qty, reason: x.reason, ref_id: x.ref_id || '', staff_id: x.staff_id || who.staff_id || '', note: x.note || '' }));
     if (!rows.length) return [];
     S.set('moves', S.get('moves', []).concat(rows));
     S.push(rows.map(d => ({ tab: 'Moves', data: d })));
@@ -81,7 +81,7 @@ CS.stock = (function () {
     if (raw === '' || isNaN(v) || v < 0 || (kind !== 'adjust' && v === 0)) { document.getElementById('stErr').textContent = 'Type a number.'; return; }
     const qty = kind === 'restock' ? v : kind === 'waste' ? -v : v - now;
     if (kind === 'adjust' && qty === 0) { CS.ui.closeSheet(); CS.ui.toast('The count was already right.'); return; }
-    add([{ booth: ctx.sess.booth, stock_id: id, qty, reason: kind, note }]);
+    add([{ booth: ctx.sess.booth, stock_id: id, qty, reason: kind, note, staff_id: ctx.by }]);
     CS.ui.closeSheet(); CS.ui.toast(kind === 'adjust' ? `Count fixed to ${v}.` : kind === 'restock' ? `Added ${v}.` : `Took out ${v}.`);
     render(ctx.el, ctx.sess);
     if (CS.sync) CS.sync.run();
@@ -89,7 +89,7 @@ CS.stock = (function () {
 
   document.addEventListener('click', e => {
     const t = e.target.closest('button'); if (!t || !ctx) return;
-    if (t.dataset.st && ctx.el.contains(t)) askSheet(t.dataset.st, t.dataset.sid);
+    if (t.dataset.st && ctx.el.contains(t)) { const kind = t.dataset.st, id = t.dataset.sid; CS.pin.approve(ctx.sess.booth, 'To change stock', who => { ctx.by = who && who.staff_id; askSheet(kind, id); }); }
     else if ('stSave' in t.dataset) save();
   });
   document.addEventListener('input', e => { if (e.target.id === 'stQty') e.target.value = e.target.value.replace(/\D/g, '').slice(0, 5); });

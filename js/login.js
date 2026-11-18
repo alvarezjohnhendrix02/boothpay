@@ -49,26 +49,40 @@
       <div class="center" style="display:grid;gap:var(--s-3);justify-items:center;margin:var(--s-3) 0 var(--s-5)">
         ${badge(b, 'lg')}
         <p class="h2">${esc(b.name)}</p>
-        <p class="sub">Type the 4-digit ${admin ? 'moderator' : 'booth'} PIN</p>
+        <p class="sub">Type the 4-digit ${admin ? 'moderator' : S.hasPin(code, 'cashier') ? 'lead or cashier' : 'booth'} PIN</p>
       </div>
       <div class="dots" id="dots" aria-label="PIN digits entered"></div>
       <p class="err center" id="err" role="alert"></p>
       <div class="keypad" id="keypad">${['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', 'del']
         .map(k => k ? `<button data-key="${k}" aria-label="${k === 'del' ? 'Delete' : k}">${k === 'del' ? icon('del') : k}</button>` : '<span></span>').join('')}</div>
       <p class="sub center" style="margin-top:var(--s-4)">${S.isDefaultPin(code) ? 'First time? The starting PIN is <b>1234</b>.' : 'Forgot the PIN? Ask your moderator.'}</p>`;
-    drawDots();
+    drawDots(); lockView();
   }
 
   function drawDots() { $('#dots').innerHTML = [0, 1, 2, 3].map(i => `<i class="${i < pin.length ? 'on' : ''}"></i>`).join(''); }
 
+  let lockTimer = 0;
+  function lockView() {
+    clearTimeout(lockTimer);
+    const left = target && CS.pin.lockLeft(target), pad = $('#keypad');
+    if (!pad) return;
+    pad.querySelectorAll('button').forEach(b => { b.disabled = !!left; });
+    pad.classList.toggle('locked', !!left);
+    if (left) { $('#err').textContent = `Too many wrong tries. Try again in ${CS.pin.clock(left)}.`; lockTimer = setTimeout(lockView, 1000); }
+    else if (/Too many/.test($('#err').textContent)) $('#err').textContent = '';
+  }
+
   function key(k) {
+    if (CS.pin.lockLeft(target)) return lockView();
     $('#err').textContent = '';
     pin = k === 'del' ? pin.slice(0, -1) : (pin + k).slice(0, 4);
     drawDots();
     if (pin.length < 4) return;
     const s = S.login(target, pin);
     if (s) return location.replace(s.role === 'admin' ? 'admin.html' : 'pos.html');
-    $('#err').textContent = 'That PIN is not right. Try again.';
+    const tries = CS.pin.triesLeft(target);
+    $('#err').textContent = CS.pin.lockLeft(target) ? '' : tries <= 3 ? `That PIN is not right. ${tries} ${tries === 1 ? 'try' : 'tries'} left before a short lock.` : 'That PIN is not right. Try again.';
+    lockView();
     $('#dots').classList.add('shake');
     pin = '';
     setTimeout(() => { const d = $('#dots'); if (d) { d.classList.remove('shake'); drawDots(); } }, 320);
@@ -106,4 +120,5 @@
   showEvent();
   showRole();
   CS.sync.start();
+  if (location.hash === '#idle') { history.replaceState(null, '', location.pathname); toast('Signed out after 15 minutes without use.'); }
 })();

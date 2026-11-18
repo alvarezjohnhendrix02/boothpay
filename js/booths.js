@@ -18,7 +18,7 @@ CS.views.booths = (function () {
             <p class="h3">${esc(b.name)} ${b.active === false ? '<span class="pill">Hidden</span>' : ''}</p>
             <p class="sub">${esc(b.hint || '')}</p>
             ${stockLine(b.code)}
-            <p class="sub">${n} item${n === 1 ? '' : 's'} · tickets start with <b class="mono">${esc(b.prefix)}-</b>${S.isDefaultPin(b.code) ? ' · <span class="bad-text">still using PIN 1234</span>' : ''}</p></div></div>
+            <p class="sub">${n} item${n === 1 ? '' : 's'} · tickets start with <b class="mono">${esc(b.prefix)}-</b> · ${S.hasPin(b.code, 'cashier') ? 'lead + cashier PINs' : 'lead PIN only'}${S.isDefaultPin(b.code) ? ' · <span class="bad-text">still using PIN 1234</span>' : ''}</p></div></div>
           <div class="card-actions"><button class="btn ghost sm" data-b-edit="${b.code}">${icon('edit')} Edit booth & items</button></div></li>`;
       }).join('')}</ul>
       <section class="panel">
@@ -46,8 +46,14 @@ CS.views.booths = (function () {
           <label><input type="radio" name="icon" value="${n}" ${b.icon === n ? 'checked' : ''}><i>${icon(n)}</i><span class="sr">${n}</span></label>`).join('')}</div></fieldset>
         <div class="field-row">
           <label class="field"><span>Ticket letter</span><input name="prefix" value="${esc(b.prefix)}" maxlength="2" placeholder="P"><small>Tickets look like ${esc(b.prefix || 'P')}-001</small></label>
-          <label class="field"><span>Booth PIN</span><input name="pin" value="${esc(b.pin || '')}" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="${b.isNew ? '1234' : 'Keep current'}"><small>${b.isNew ? 'Blank = 1234' : 'Blank = keep current PIN'}</small></label>
+          <span></span>
         </div>
+        <div><p class="h3">${icon('key')} PINs</p><p class="sub">The <b>lead</b> can do everything at the booth. A <b>cashier</b> can only sell; undoing a sale, closing the day and changing stock need the lead's PIN.</p></div>
+        <div class="field-row">
+          <label class="field"><span>Lead PIN</span><input name="pin" value="${esc(b.pin || '')}" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="${b.isNew ? '1234' : 'Keep current'}"><small>${b.isNew ? 'Blank = 1234 (change it later)' : 'Blank = keep current PIN'}</small></label>
+          <label class="field"><span>Cashier PIN <small>(optional)</small></span><input name="cpin" value="${esc(b.cpin || '')}" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="${b.hasCashier ? 'Keep current' : 'None'}"><small>${b.hasCashier ? 'Blank = keep current PIN' : 'Blank = no cashier PIN'}</small></label>
+        </div>
+        ${b.hasCashier ? `<label class="check"><input type="checkbox" name="nocashier" ${b.nocashier ? 'checked' : ''}> Turn off the cashier PIN</label>` : ''}
         <div><p class="h3">Stock to track <small class="sub">(optional)</small></p>
           <p class="sub">Supplies this booth uses up, like photo paper or pins. Each sale takes them out by itself.</p></div>
         <div class="stocks">${b.stock.map((s, i) => { const n = hand[s.stock_id]; return `
@@ -83,7 +89,7 @@ CS.views.booths = (function () {
     const f = document.getElementById('boothForm'); if (!f) return;
     const fd = new FormData(f);
     Object.assign(draft, { name: fd.get('name').trim(), hint: fd.get('hint').trim(), color: fd.get('color') || draft.color, icon: fd.get('icon') || draft.icon,
-      prefix: fd.get('prefix').trim().toUpperCase(), pin: fd.get('pin').trim(), active: fd.get('active') === 'on' });
+      prefix: fd.get('prefix').trim().toUpperCase(), pin: fd.get('pin').trim(), cpin: fd.get('cpin').trim(), nocashier: fd.get('nocashier') === 'on', active: fd.get('active') === 'on' });
     f.querySelectorAll('.prod-row').forEach(r => {
       const p = draft.products[+r.dataset.i], v = k => r.querySelector(`[data-f="${k}"]`).value;
       Object.assign(p, { name: v('name').trim(), price: v('price').trim(), type: v('type') });
@@ -107,7 +113,9 @@ CS.views.booths = (function () {
     const err = m => { document.getElementById('bErr').textContent = m; };
     const b = draft, prods = b.products.filter(p => p.name || p.price);
     if (!b.name) return err('Give the booth a name.');
-    if (b.pin && !/^\d{4}$/.test(b.pin)) return err('The PIN must be exactly 4 numbers.');
+    if (b.pin && CS.pin.weak(b.pin)) return err('Lead PIN: ' + CS.pin.weak(b.pin));
+    if (b.cpin && CS.pin.weak(b.cpin)) return err('Cashier PIN: ' + CS.pin.weak(b.cpin));
+    if (b.pin && b.pin === b.cpin) return err('The lead and cashier PINs must be different.');
     const bad = prods.find(p => !p.name || isNaN(U.centavos(p.price)) || U.centavos(p.price) < 0);
     if (bad) return err(`Check "${bad.name || 'an item'}": every item needs a name and a price.`);
     const stocks = b.stock.filter(s => s.name);
@@ -137,8 +145,12 @@ CS.views.booths = (function () {
     });
     c.stock.forEach(x => { if (x.booth === code && !keepS.has(x.stock_id)) x.active = false; });
 
-    if (b.pin) S.setPin(code, b.pin, c);
-    else if (!c.staff.some(s => s.booth === code)) S.setPin(code, '1234', c);
+    if (b.pin) S.setPin(code, b.pin, c, 'lead');
+    else if (!c.staff.some(s => s.booth === code && (s.role || 'lead') === 'lead')) S.setPin(code, '1234', c, 'lead');
+    if (b.cpin) S.setPin(code, b.cpin, c, 'cashier');
+    else if (b.nocashier) S.setPin(code, null, c, 'cashier');
+    const lead = c.staff.find(s => s.booth === code && (s.role || 'lead') === 'lead' && s.active !== false), cash = c.staff.find(s => s.booth === code && s.role === 'cashier' && s.active !== false);
+    if (lead && cash && lead.pin_hash === cash.pin_hash) return err('The lead and cashier PINs must be different.');
     S.saveCatalog(c);
     CS.stock.add(stocks.filter(s => parseInt(s.add, 10) > 0).map(s => ({ booth: code, stock_id: s.stock_id, qty: parseInt(s.add, 10), reason: 'restock', note: 'Added by moderator' })));
     closeSheet(); toast('Booth saved.'); CS.admin.refresh(); if (CS.sync) CS.sync.run();
@@ -153,7 +165,7 @@ CS.views.booths = (function () {
       form();
     } else if (d.bEdit) {
       const c = S.catalog(), b = c.booths.find(x => x.code === d.bEdit);
-      draft = { ...clone(b), isNew: false, pin: '',
+      draft = { ...clone(b), isNew: false, pin: '', cpin: '', hasCashier: S.hasPin(b.code, 'cashier'),
         products: c.products.filter(p => p.booth === b.code && p.active).map(p => ({ sku: p.sku, name: p.name, price: String(p.price_c / 100), type: p.type, uses: clone(p.uses || []) })),
         stock: CS.stock.items(b.code).map(s => ({ ...clone(s), add: '' })) };
       form();
@@ -170,8 +182,7 @@ CS.views.booths = (function () {
     }
     else if ('adminPin' in d) {
       const v = document.getElementById('adminPin').value.trim();
-      if (!/^\d{4}$/.test(v)) return toast('The PIN must be exactly 4 numbers.', 'bad');
-      if (v === '1234') return toast('Pick a PIN other than 1234.', 'bad');
+      if (CS.pin.weak(v)) return toast(CS.pin.weak(v), 'bad');
       S.saveCatalog(S.setPin('ADMIN', v, clone(S.catalog())));
       toast('Moderator PIN changed.'); CS.admin.refresh();
     }
@@ -179,7 +190,7 @@ CS.views.booths = (function () {
   function submit(e) { if (e.target.id === 'boothForm') { e.preventDefault(); save(); } }
   function input(e) {
     const t = e.target;
-    if (t.id === 'adminPin' || t.name === 'pin' || ['low', 'add'].includes(t.dataset.sf) || /^q\d$/.test(t.dataset.f || '')) t.value = t.value.replace(/\D/g, '');
+    if (t.id === 'adminPin' || t.name === 'pin' || t.name === 'cpin' || ['low', 'add'].includes(t.dataset.sf) || /^q\d$/.test(t.dataset.f || '')) t.value = t.value.replace(/\D/g, '');
     if (t.dataset.sf === 'name') { // keep the "Uses from stock" choices in step with the name being typed
       const s = draft.stock[+t.closest('.stock-row').dataset.si];
       document.querySelectorAll(`#boothForm option[value="${s.stock_id}"]`).forEach(o => { o.textContent = t.value || 'Unnamed'; });

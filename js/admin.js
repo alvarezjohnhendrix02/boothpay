@@ -174,5 +174,38 @@ CS.admin = (function () {
   $('#tabs').innerHTML = TABS.map(([v, ic, label]) => `<button role="tab" data-view="${v}">${icon(ic)}${label}</button>`).join('');
   go(current);
   CS.sync.start();
+
+  /* ---------- the moderator must replace the starting PIN ---------- */
+  function forcePin() {
+    const sh = $('#sheet');
+    openSheet(`<div class="sheet-head"><div><p class="h2">${icon('key')} Set your own moderator PIN</p>
+        <p class="sub">Everyone can guess 1234. Pick a new PIN before you continue.</p></div></div>
+      <form id="fpForm" class="form" novalidate>
+        <label class="field"><span>New PIN</span><input class="input big-input num" name="a" inputmode="numeric" maxlength="4" autocomplete="off" autofocus></label>
+        <label class="field"><span>Type it again</span><input class="input big-input num" name="b" inputmode="numeric" maxlength="4" autocomplete="off"></label>
+        <p class="err" id="fpErr" role="alert"></p>
+        <button class="btn go wide" type="submit">${icon('check')} Save PIN</button>
+      </form>`);
+    sh.dataset.lock = '1';
+  }
+  document.addEventListener('submit', e => {
+    if (e.target.id !== 'fpForm') return;
+    e.preventDefault();
+    const a = e.target.a.value.trim(), b = e.target.b.value.trim(), err = m => { $('#fpErr').textContent = m; };
+    if (CS.pin.weak(a)) return err(CS.pin.weak(a));
+    if (a !== b) return err('The two PINs are not the same.');
+    S.saveCatalog(S.setPin('ADMIN', a, JSON.parse(JSON.stringify(S.catalog()))));
+    delete $('#sheet').dataset.lock; CS.ui.closeSheet();
+    toast('Moderator PIN saved. Remember it!'); CS.sync.run(); go(current);
+  });
+  document.addEventListener('input', e => { if (e.target.closest && e.target.closest('#fpForm')) e.target.value = e.target.value.replace(/\D/g, ''); });
+  if (S.isDefaultPin('ADMIN')) forcePin();
+
+  /* ---------- sign out after 15 minutes without use ---------- */
+  let lastUse = Date.now();
+  ['click', 'keydown', 'touchstart', 'input'].forEach(t => document.addEventListener(t, () => { lastUse = Date.now(); }, true));
+  const idleCheck = () => { if (Date.now() - lastUse > 15 * 60000) { S.logout(); location.replace('index.html#idle'); } };
+  setInterval(idleCheck, 30000);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') idleCheck(); });
   return { refresh: () => go(current), go };
 })();

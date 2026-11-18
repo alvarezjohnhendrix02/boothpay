@@ -70,6 +70,14 @@
     if (e.detail.setupChanged && !count() && !$('#sheet').open) location.reload();
   });
 
+  function openTab(name, as) {
+    $$('[data-tab]').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === name));
+    ['sell', 'today', 'close', 'stock'].forEach(n => { $('#tab-' + n).hidden = n !== name; });
+    if (name === 'close') CS.closeout.render($('#tab-close'), as);
+    if (name === 'stock') CS.stock.render($('#tab-stock'), as);
+    render();
+  }
+
   function renderToday() {
     const all = S.salesToday(sess.booth).slice().reverse(), paid = all.filter(s => s.status === 'paid');
     const sum = m => paid.filter(s => !m || s.pay === m).reduce((a, s) => a + s.total_c, 0);
@@ -176,21 +184,16 @@
     else if ('exact' in d) { pay.tendered = pay.total; showPay(); }
     else if ('reset' in d) { pay.tendered = 0; showPay(); }
     else if ('confirm' in d) confirmPay();
-    else if (d.undo) { undo = { id: d.undo, reason: '' }; showUndo(); }
+    else if (d.undo) { const id = d.undo; CS.pin.approve(sess.booth, 'To undo a sale', who => { undo = { id, reason: '', by: who }; showUndo(); }); }
     else if (d.reason) { undo.reason = d.reason; showUndo(); }
     else if ('undoYes' in d) {
       const s = S.salesToday(sess.booth).find(x => x.sale_id === undo.id);
-      if (s && S.voidSale(s.sale_id, s.booth, s.ts, undo.reason, sess)) toast('Sale undone.');
+      if (s && S.voidSale(s.sale_id, s.booth, s.ts, undo.reason, undo.by || sess)) toast('Sale undone.');
       closeSheet(); render();
     }
     else if ('export' in d) exportToday();
-    else if (d.tab) {
-      $$('[data-tab]').forEach(b => b.setAttribute('aria-selected', b === t));
-      $('#tab-sell').hidden = d.tab !== 'sell'; $('#tab-today').hidden = d.tab !== 'today'; $('#tab-close').hidden = d.tab !== 'close'; $('#tab-stock').hidden = d.tab !== 'stock';
-      if (d.tab === 'close') CS.closeout.render($('#tab-close'), sess);
-      if (d.tab === 'stock') CS.stock.render($('#tab-stock'), sess);
-      render();
-    } else if (t.id === 'signout') { S.logout(); location.replace('index.html'); }
+    else if (d.tab === 'close' && sess.role === 'cashier') CS.pin.approve(sess.booth, 'To count the cash and close the day', lead => openTab('close', { ...sess, staff_id: lead.staff_id, role: 'lead' }));
+    else if (d.tab) openTab(d.tab, sess); else if (t.id === 'signout') { S.logout(); location.replace('index.html'); }
   });
   $('#sheet').addEventListener('close', () => { pay = null; });
   $('#sheet').addEventListener('input', e => {
@@ -204,7 +207,7 @@
   const ev = S.activeEvent();
   $('#boothBadge').innerHTML = badge(booth);
   $('#boothName').textContent = booth.name;
-  $('#eventName').textContent = (ev ? ev.name + ' · ' : '') + sess.name;
+  $('#eventName').textContent = (ev ? ev.name + ' · ' : '') + (sess.role === 'cashier' ? 'Cashier' : 'Lead');
   $('#signout').innerHTML = icon('logout');
   $('[data-tab="sell"]').innerHTML = icon('cart') + 'Sell';
   $('[data-tab="today"]').innerHTML = icon('chart') + 'Today<span class="hide-sm">\'s sales</span>';

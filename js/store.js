@@ -36,7 +36,7 @@ CS.store = (function () {
   const deviceBooth = () => get('device.booth', null);
   const setDeviceBooth = b => b ? set('device.booth', b) : del('device.booth');
   function login(boothCode, pin) {
-    const s = catalog().staff.find(x => x.booth === boothCode && x.active && x.pin_hash === U.hash(pin + boothCode));
+    const s = CS.pin ? CS.pin.check(boothCode, pin) : catalog().staff.find(x => x.booth === boothCode && x.active && x.pin_hash === U.hash(pin + boothCode));
     if (!s) return null;
     const sess = { staff_id: s.staff_id, name: s.name, role: s.role, booth: boothCode, ts: U.now() };
     set('session', sess);
@@ -44,13 +44,20 @@ CS.store = (function () {
     return sess;
   }
   const logout = () => del('session');
-  function setPin(boothCode, pin, c = catalog()) {
-    let s = c.staff.find(x => x.booth === boothCode);
-    if (!s) { s = { staff_id: boothCode + '-L1', name: (booth(boothCode) || { name: boothCode }).name + ' team', booth: boothCode, role: boothCode === 'ADMIN' ? 'admin' : 'lead', active: true }; c.staff.push(s); }
-    s.pin_hash = U.hash(pin + boothCode);
+  // role: 'lead' (default), 'cashier' (can only sell) or 'admin'. pin = null turns that PIN off.
+  function setPin(boothCode, pin, c = catalog(), role = boothCode === 'ADMIN' ? 'admin' : 'lead') {
+    let s = c.staff.find(x => x.booth === boothCode && (x.role || 'lead') === role);
+    if (!s && pin == null) return c;
+    if (!s) {
+      const nm = (c.booths.find(b => b.code === boothCode) || { name: boothCode === 'ADMIN' ? 'Moderator' : boothCode }).name;
+      s = { staff_id: boothCode + (role === 'cashier' ? '-C1' : role === 'admin' ? '-1' : '-L1'), name: role === 'admin' ? 'Moderator' : `${nm} ${role}`, booth: boothCode, role, active: true };
+      c.staff.push(s);
+    }
+    if (pin == null) s.active = false; else { s.pin_hash = U.hash(pin + boothCode); s.active = true; }
     return c;
   }
-  const isDefaultPin = boothCode => !!catalog().staff.find(x => x.booth === boothCode && x.pin_hash === U.hash('1234' + boothCode));
+  const hasPin = (boothCode, role) => !!catalog().staff.find(x => x.booth === boothCode && (x.role || 'lead') === role && x.active !== false);
+  const isDefaultPin = boothCode => !!catalog().staff.find(x => x.booth === boothCode && x.active !== false && x.pin_hash === U.hash('1234' + boothCode));
 
   /* ---------- sales ---------- */
   function nextTicketNo(boothCode) {
@@ -129,7 +136,7 @@ CS.store = (function () {
   return {
     get, set, push, catalog, saveCatalog, booth, productName,
     events, saveEvents, activeEvent, setActiveEvent, boothsForSale,
-    session, deviceBooth, setDeviceBooth, login, logout, setPin, isDefaultPin,
+    session, deviceBooth, setDeviceBooth, login, logout, setPin, hasPin, isDefaultPin,
     recordSale, salesToday, allSales, voidSale, outboxCount, recordCloseout, closeoutsToday, allCloseouts,
     imports, saveImports, exportSetup, importSetup,
   };

@@ -62,7 +62,8 @@ CS.ui = (function () {
     if (!s.open) s.showModal();
     const f = s.querySelector('[autofocus]'); if (f) f.focus();
   }
-  const closeSheet = () => { const s = sheetEl(); if (s && s.open) s.close(); };
+  const closeSheet = () => { const s = sheetEl(); if (s && s.open && !s.dataset.lock) s.close(); };
+  document.addEventListener('cancel', e => { if (e.target.dataset && e.target.dataset.lock) e.preventDefault(); }, true);
   const head = (title, sub = '') => `<div class="sheet-head"><div><p class="h2">${title}</p>${sub ? `<p class="sub">${sub}</p>` : ''}</div><button class="x" data-close aria-label="Close">${icon('x')}</button></div>`;
 
   document.addEventListener('click', e => {
