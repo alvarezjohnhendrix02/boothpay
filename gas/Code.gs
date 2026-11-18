@@ -7,6 +7,7 @@
  * 3. Paste the web app URL and the same key in ContactSheet → Moderator → Sync & phones.
  */
 const SYNC_KEY = 'CHANGE-ME';
+const VERSION = 2; // 2 = adds end-of-day cash counts (CloseOuts tab)
 
 // Columns per tab. Writes are append-only; a row whose _key already exists is skipped.
 const TABS = {
@@ -14,6 +15,7 @@ const TABS = {
   SaleItems: ['sale_id', 'sku', 'name', 'qty', 'price_c', 'cost_c'],
   Tickets: ['ticket_no', 'code', 'sale_id', 'booth', 'sku', 'qty', 'status', 'ts_created'],
   Voids: ['sale_id', 'ts', 'booth', 'reason', 'staff_id'],
+  CloseOuts: ['close_id', 'ts', 'event_id', 'booth', 'staff_id', 'float_c', 'cash_sales_c', 'expected_cash_c', 'counted_cash_c', 'variance_c', 'variance_php', 'gcash_total_c', 'denoms', 'note'],
 };
 const DATE_FIELDS = { ts: 1, ts_created: 1 };
 const META = ['_key', '_device', '_received'];
@@ -39,7 +41,7 @@ function doPost(e) {
   }
 }
 
-function out(o) { return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON); }
+function out(o) { o.v = VERSION; return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON); }
 
 function tab(name, headers) {
   const ss = SpreadsheetApp.getActive();
@@ -79,6 +81,7 @@ function append(rows, device) {
         keys.add(k);
         const d = Object.assign({}, r.data);
         if (name === 'Sales') d.total_php = (Number(d.total_c) || 0) / 100;
+        if (name === 'CloseOuts') d.variance_php = (Number(d.variance_c) || 0) / 100;
         values.push([k, device, now].concat(cols.map(h => cell(h, d[h]))));
       });
       if (values.length) { sh.getRange(last + 1, 1, values.length, values[0].length).setValues(values); added += values.length; }
@@ -129,5 +132,10 @@ function sales() {
     pay: String(s.pay || ''), gcash_ref: String(s.gcash_ref || ''), status: voids[s.sale_id] ? 'void' : String(s.status || 'paid'),
     void_reason: voids[s.sale_id] || '', items: items[s.sale_id] || [], device: String(s._device || ''),
   }));
-  return { ok: true, sales: list, ts: new Date().toISOString() };
+  const closeouts = read('CloseOuts').map(c => ({
+    close_id: String(c.close_id), ts: c.ts, event_id: String(c.event_id || ''), booth: String(c.booth), staff_id: String(c.staff_id || ''),
+    float_c: Number(c.float_c) || 0, cash_sales_c: Number(c.cash_sales_c) || 0, expected_cash_c: Number(c.expected_cash_c) || 0,
+    counted_cash_c: Number(c.counted_cash_c) || 0, variance_c: Number(c.variance_c) || 0, gcash_total_c: Number(c.gcash_total_c) || 0, note: String(c.note || ''),
+  }));
+  return { ok: true, sales: list, closeouts, ts: new Date().toISOString() };
 }

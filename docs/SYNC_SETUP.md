@@ -29,7 +29,7 @@ Do this once, on a laptop, with the Google account that should own the sales rec
 ## 4. Connect ContactSheet
 1. Open ContactSheet → **I'm the moderator** → **Sync & phones** (top right).
 2. Paste the Web app URL and type the same sync key → **Save & test**.
-   You should see "Connected to …". Tabs named Sales, SaleItems, Tickets, Voids and Setup appear in the Sheet as data arrives.
+   You should see "Connected to …". Tabs named Sales, SaleItems, Tickets, Voids, CloseOuts and Setup appear in the Sheet as data arrives.
 3. Tap **Download setup file** and send it to every booth phone. On each phone: open ContactSheet →
    **Got a setup file? Load it**. The file carries the Sheet connection, so you only do this once per phone.
 
@@ -41,6 +41,16 @@ Do this once, on a laptop, with the Google account that should own the sales rec
 - Reports on the moderator page include every booth's sales from the Sheet, plus your PMS uploads.
 - Rows are never edited or deleted. An undone sale adds a row to the **Voids** tab.
 - Money columns ending in `_c` are in centavos (5000 = ₱50). `total_php` is the same amount in pesos.
+
+## Updating the script (when ContactSheet gets a new Code.gs)
+1. Open your Sheet → **Extensions → Apps Script**.
+2. Copy the line with your `SYNC_KEY` somewhere safe first.
+3. Replace everything in `Code.gs` with the new `gas/Code.gs`, then put your own `SYNC_KEY` line back.
+4. **Save**, then **Deploy → Manage deployments → pencil (edit) → Version: New version → Deploy**.
+   The web app URL stays the same, so phones need nothing new.
+
+Version 2 adds the **CloseOuts** tab (end-of-day cash counts). Until you update, cash counts wait safely
+on the booth phones (their top bar says "Cash count waiting · update Sheet") and are sent once you do.
 
 ## If something goes wrong
 | You see | Do this |

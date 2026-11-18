@@ -1,11 +1,11 @@
 /* Service worker: keeps a full copy of the app on the device so it opens with no internet.
    Change VERSION on every release; phones then download the new copy and show "New version — tap to update". */
-const VERSION = 'cs-2026-11-18b';
+const VERSION = 'cs-2026-11-18c';
 const FILES = [
   './', 'index.html', 'pos.html', 'admin.html', 'manifest.json',
   'css/tokens.css', 'css/ui.css', 'css/admin.css',
   'js/util.js', 'js/ui.js', 'js/csv.js', 'js/seed.js', 'js/store.js', 'js/sync.js', 'js/pwa.js',
-  'js/login.js', 'js/pos.js', 'js/admin.js', 'js/booths.js', 'js/import.js', 'js/reports.js',
+  'js/login.js', 'js/closeout.js', 'js/pos.js', 'js/admin.js', 'js/booths.js', 'js/import.js', 'js/reports.js',
   'assets/fonts/varelaround-400.ttf', 'assets/fonts/plexmono-500.woff2',
   'assets/icons/icon-192.png', 'assets/icons/icon-512.png', 'assets/icons/icon-any-512.png', 'assets/icons/apple-touch-icon.png',
 ];

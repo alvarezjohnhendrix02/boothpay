@@ -172,7 +172,8 @@
     else if ('export' in d) exportToday();
     else if (d.tab) {
       $$('[data-tab]').forEach(b => b.setAttribute('aria-selected', b === t));
-      $('#tab-sell').hidden = d.tab !== 'sell'; $('#tab-today').hidden = d.tab !== 'today';
+      $('#tab-sell').hidden = d.tab !== 'sell'; $('#tab-today').hidden = d.tab !== 'today'; $('#tab-close').hidden = d.tab !== 'close';
+      if (d.tab === 'close') CS.closeout.render($('#tab-close'), sess);
       render();
     } else if (t.id === 'signout') { S.logout(); location.replace('index.html'); }
   });
@@ -191,7 +192,8 @@
   $('#eventName').textContent = (ev ? ev.name + ' · ' : '') + sess.name;
   $('#signout').innerHTML = icon('logout');
   $('[data-tab="sell"]').innerHTML = icon('cart') + 'Sell';
-  $('[data-tab="today"]').innerHTML = icon('chart') + "Today's sales";
+  $('[data-tab="today"]').innerHTML = icon('chart') + 'Today<span class="hide-sm">\'s sales</span>';
+  $('[data-tab="close"]').innerHTML = icon('cash') + 'Close day';
   render();
   CS.sync.start();
 })();

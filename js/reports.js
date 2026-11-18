@@ -40,6 +40,31 @@ CS.views.reports = (function () {
 
   const boothOf = code => S.booth(code) || { code, name: code || 'Unknown booth', color: '#FFB98A', icon: 'store' };
   const evName = id => id ? (S.events().find(e => e.event_id === id) || { name: 'Deleted event' }).name : 'No event';
+  // Latest cash count per booth per day (a recount replaces the earlier one), from this device + the Sheet.
+  function closeouts() {
+    const all = {}, latest = {};
+    S.allCloseouts().concat(S.get('remote.closeouts', [])).forEach(c => { all[c.close_id] = c; });
+    Object.values(all).forEach(c => {
+      if (!((f.event === '*' || (c.event_id || '') === f.event) && (f.booth === '*' || c.booth === f.booth) && (f.day === '*' || U.dayOf(c.ts) === f.day))) return;
+      const k = c.booth + '|' + U.dayOf(c.ts);
+      if (!latest[k] || c.ts > latest[k].ts) latest[k] = c;
+    });
+    return Object.values(latest).sort((a, b) => a.ts.localeCompare(b.ts));
+  }
+  function cashPanel() {
+    const list = closeouts();
+    if (!list.length) return '';
+    const flagged = list.filter(c => Math.abs(c.variance_c) > 5000).length;
+    return `<section class="panel span2"><p class="h3">${icon('cash')} End-of-day cash count ${flagged ? `<span class="pill bad">${flagged} to check</span>` : '<span class="pill ok">All good</span>'}</p>
+      <div class="table-wrap"><table class="table"><thead><tr><th>Booth</th><th>Day</th><th class="r">Should be</th><th class="r">Counted</th><th>Difference</th><th>Note</th></tr></thead>
+      <tbody>${list.map(c => { const v = c.variance_c, off = Math.abs(v) > 5000; return `<tr>
+        <td><span class="mini">${badge(boothOf(c.booth), 'sm')}${esc(boothOf(c.booth).name)}</span></td><td class="num">${dayLabel(U.dayOf(c.ts))} ${time(c.ts)}</td>
+        <td class="r num">${money(c.expected_cash_c)}</td><td class="r num"><b>${money(c.counted_cash_c)}</b></td>
+        <td><span class="pill ${off ? 'bad' : 'ok'}">${v === 0 ? 'Exact' : (v < 0 ? 'Short ' : 'Over ') + money(Math.abs(v))}</span></td>
+        <td class="sub">${esc(c.note || '')}</td></tr>`; }).join('')}</tbody></table></div>
+      <p class="sub">Should be = starting cash + cash sales. Differences over ₱50 are marked to check.</p></section>`;
+  }
+
   const group = (rows, key, val = r => r.total_c) => rows.reduce((m, r) => { const k = key(r); m[k] = (m[k] || 0) + val(r); return m; }, {});
 
   function filtered() {
@@ -109,6 +134,7 @@ CS.views.reports = (function () {
         <div class="stat"><p class="label">Items sold</p><p class="big-num">${units}</p></div>
       </div>
       <div class="report-grid">
+        ${cashPanel()}
         <section class="panel"><p class="h3">By booth</p>
           ${bars(group(rows, r => r.booth), k => `${badge(boothOf(k), 'sm')}${esc(boothOf(k).name)}`, k => boothOf(k).color)}</section>
         <section class="panel"><p class="h3">How people paid</p>

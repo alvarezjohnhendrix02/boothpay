@@ -116,7 +116,7 @@ CS.admin = (function () {
     const c = CS.sync.cfg() || { url: '', key: '' }, s = CS.sync.status(), L = CS.sync.label();
     openSheet(`${head('Sync & phones', 'Connect a Google Sheet so every booth&rsquo;s sales arrive here by themselves.')}
       <section class="panel"><p class="h3">${icon('sync')} Google Sheet</p>
-        ${s.configured ? `<p><span id="syncChip" class="chip${L.ok ? ' ok' : ''}">${esc(L.text)}</span> <span class="sub">${s.last ? 'Last sync ' + CS.util.time(s.last) : ''}</span></p>${s.err ? `<p class="note warn">${esc(s.err)}</p>` : ''}`
+        ${s.configured ? `<p><span id="syncChip" class="chip${L.ok ? ' ok' : ''}">${esc(L.text)}</span> <span class="sub">${s.last ? 'Last sync ' + CS.util.time(s.last) : ''}</span></p>${s.err ? `<p class="note warn">${esc(s.err)}</p>` : ''}${S.get('sync.v', 0) < 2 && s.last ? '<p class="note warn">Your Sheet script is an older version, so booth cash counts wait on the phones. Update it: see <b>docs/SYNC_SETUP.md → Updating the script</b>.</p>' : ''}`
           : '<p class="sub">Not connected yet. Follow <b>docs/SYNC_SETUP.md</b> (about 10 minutes), then paste the two things below.</p>'}
         <form id="syncForm" class="form" novalidate>
           <label class="field"><span>Web app URL</span><input name="url" value="${esc(c.url)}" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off" inputmode="url" spellcheck="false"></label>

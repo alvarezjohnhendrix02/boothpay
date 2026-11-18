@@ -87,6 +87,19 @@ CS.store = (function () {
   const salesToday = boothCode => get(`sales.${boothCode}.${U.today()}`, []);
   const allSales = () => keys('sales.').flatMap(k => get(k, []));
 
+  /* ---------- end-of-day cash count (a recount adds a new record; the latest one counts) ---------- */
+  function recordCloseout(rec) {
+    const ev = activeEvent();
+    const c = { close_id: U.id(rec.booth), ts: U.now(), event_id: ev ? ev.event_id : '', ...rec, denoms: JSON.stringify(rec.denoms || {}) };
+    const k = `close.${rec.booth}.${U.today()}`, list = get(k, []);
+    list.push(c);
+    const saved = set(k, list);
+    push([{ tab: 'CloseOuts', data: c }]);
+    return { close: c, saved };
+  }
+  const closeoutsToday = boothCode => get(`close.${boothCode}.${U.today()}`, []);
+  const allCloseouts = () => keys('close.').flatMap(k => get(k, []));
+
   // Undo = mark void + log a reversing row. Nothing is deleted.
   function voidSale(saleId, boothCode, ts, reason, staff) {
     const k = `sales.${boothCode}.${U.dayOf(ts)}`, list = get(k, []), s = list.find(x => x.sale_id === saleId);
@@ -114,7 +127,7 @@ CS.store = (function () {
     get, set, catalog, saveCatalog, booth, productName,
     events, saveEvents, activeEvent, setActiveEvent, boothsForSale,
     session, deviceBooth, setDeviceBooth, login, logout, setPin, isDefaultPin,
-    recordSale, salesToday, allSales, voidSale, outboxCount,
+    recordSale, salesToday, allSales, voidSale, outboxCount, recordCloseout, closeoutsToday, allCloseouts,
     imports, saveImports, exportSetup, importSetup,
   };
 })();

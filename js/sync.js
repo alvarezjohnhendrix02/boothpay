@@ -21,7 +21,7 @@ CS.sync = (function () {
     const d = r.data || {};
     if (r.tab === 'SaleItems') return `SaleItems:${d.sale_id}:${d.sku}`;
     if (r.tab === 'Tickets') return `Tickets:${d.sale_id}:${d.ticket_no}`;
-    return `${r.tab}:${d.sale_id || d.ts}`;
+    return `${r.tab}:${d.sale_id || d.close_id || d.ts}`;
   }
 
   async function call(op, extra) {
@@ -41,10 +41,21 @@ CS.sync = (function () {
   async function pushOutbox() {
     for (;;) {
       const box = S.get('outbox', []);
-      if (!box.length) return;
-      const batch = box.slice(0, BATCH);
-      await call('append', { rows: batch.map(r => ({ tab: r.tab, key: rowKey(r), data: r.data })) });
-      S.set('outbox', S.get('outbox', []).slice(batch.length)); // new sales are only ever added at the end
+      // A Code.gs older than v2 would silently skip cash counts, so hold those back until it is updated.
+      let ready = S.get('sync.v', 0) >= 2 ? box : box.filter(r => r.tab !== 'CloseOuts');
+      st.oldSheet = false;
+      if (!ready.length && box.length) {
+        const p = await call('ping');
+        if (p.v) S.set('sync.v', p.v);
+        if ((p.v || 0) >= 2) continue;
+        st.oldSheet = true; return;
+      }
+      if (!ready.length) return;
+      const batch = ready.slice(0, BATCH);
+      const j = await call('append', { rows: batch.map(r => ({ tab: r.tab, key: rowKey(r), data: r.data })) });
+      if (j.v) S.set('sync.v', j.v);
+      const sent = new Set(batch.map(rowKey));
+      S.set('outbox', S.get('outbox', []).filter(r => !sent.has(rowKey(r))));
     }
   }
 
@@ -67,7 +78,8 @@ CS.sync = (function () {
   }
   async function pullSales() {
     const j = await call('sales');
-    S.set('remote.sales', j.sales || []); S.set('sync.pulled', j.ts || U.now());
+    S.set('remote.sales', j.sales || []); S.set('remote.closeouts', j.closeouts || []); S.set('sync.pulled', j.ts || U.now());
+    if (j.v) S.set('sync.v', j.v);
   }
 
   async function run() {
@@ -95,7 +107,7 @@ CS.sync = (function () {
   const emit = detail => document.dispatchEvent(new CustomEvent('cs-sync', { detail }));
 
   function status() {
-    return { configured: configured(), busy: st.busy, err: st.err, unsent: S.outboxCount(), last: S.get('sync.last', ''), pulled: S.get('sync.pulled', '') };
+    return { configured: configured(), oldSheet: !!st.oldSheet, busy: st.busy, err: st.err, unsent: S.outboxCount(), last: S.get('sync.last', ''), pulled: S.get('sync.pulled', '') };
   }
 
   // One line for the top bar, e.g. "Synced" or "3 waiting · No internet".
@@ -103,6 +115,7 @@ CS.sync = (function () {
     const s = status();
     if (!s.configured) return { text: s.unsent ? `${s.unsent} saved on this phone` : 'Ready to sell', ok: !s.unsent };
     if (s.busy) return { text: 'Syncing…', ok: false };
+    if (s.oldSheet && !s.err) return { text: 'Cash count waiting · update Sheet', ok: false };
     if (s.err) return { text: s.unsent ? `${s.unsent} waiting · ${s.err === 'No internet' ? 'offline' : 'not sent'}` : 'Sheet not reached', ok: false };
     return { text: s.unsent ? `${s.unsent} waiting` : 'Synced', ok: !s.unsent };
   }

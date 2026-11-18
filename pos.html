@@ -23,6 +23,7 @@
   <nav class="tabs" role="tablist">
     <button role="tab" aria-selected="true" data-tab="sell"></button>
     <button role="tab" aria-selected="false" data-tab="today"></button>
+    <button role="tab" aria-selected="false" data-tab="close"></button>
   </nav>
 </header>
 
@@ -32,6 +33,7 @@
     <div class="grid" id="grid"></div>
   </section>
   <section id="tab-today" class="today" hidden></section>
+  <section id="tab-close" class="today close" hidden></section>
   <aside class="cart-side" aria-label="Current sale">
     <p class="h2">This sale</p>
     <div class="cart-body"></div>
@@ -51,6 +53,7 @@
 <script src="js/store.js"></script>
 <script src="js/sync.js"></script>
 <script src="js/pwa.js"></script>
+<script src="js/closeout.js"></script>
 <script src="js/pos.js"></script>
 </body>
 </html>
