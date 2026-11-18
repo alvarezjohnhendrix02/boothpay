@@ -1,10 +1,10 @@
-/* Sign in: tap your name (set up by the moderator in People), then type your 4-digit PIN.
+/* Sign in: choose the booth, tap your name (set up by the moderator in People), then type your 4-digit PIN.
    The person decides the booth and the role (manager, cashier, moderator). */
 (function () {
   const { $, esc, dayLabel } = CS.util, S = CS.store, { icon, badge, toast } = CS.ui;
   const sess = S.session();
   if (sess) { location.replace(sess.role === 'admin' ? 'admin.html' : 'pos.html'); return; }
-  let pin = '', lockTimer = 0, who = null, query = '';
+  let pin = '', lockTimer = 0, who = null, query = '', pick = S.deviceBooth() || '';
   const MOD = { name: 'Moderator', color: 'var(--lilac)', icon: 'shield' };
 
   $('#brandMark').innerHTML = CS.ui.logo();
@@ -19,27 +19,33 @@
 
   const roleLabel = s => s.role === 'admin' ? 'Moderator' : s.role === 'cashier' ? 'Cashier' : 'Manager';
   const boothOf = s => s.role === 'admin' ? MOD : (S.booth(s.booth) || { name: s.booth, color: '#FFB98A', icon: 'store' });
-  const card = (s, big) => `<button class="person${big ? ' big' : ''}" data-person="${s.staff_id}" style="--booth:${boothOf(s).color}">${badge(boothOf(s), big ? 'lg' : '')}
-    <span><b>${esc(s.name)}</b><span class="sub">${s.role === 'admin' ? 'Moderator' : big ? esc(boothOf(s).name) + ' · ' + roleLabel(s) : roleLabel(s)}</span></span>${icon('next', 'go')}</button>`;
+  const here = () => S.booth(pick) || { name: pick, color: '#FFB98A', icon: 'store' };
+  const card = s => `<button class="person" data-person="${s.staff_id}" style="--booth:${here().color}">${badge(here())}
+    <span><b>${esc(s.name)}</b><span class="sub">${roleLabel(s)}${s.booth !== pick ? ' · from ' + esc(boothOf(s).name) : ''}</span></span>${icon('next', 'go')}</button>`;
 
-  // Step 1: who are you? People of the booths in today's event, grouped by booth.
+  // Step 1: pick the booth (one dropdown), then tap your name. The moderator has their own big button.
   function showPeople() {
     who = null; pin = '';
-    const all = S.staffList().filter(s => s.role !== 'admin'), open = all.filter(s => !S.eventBlock(s.booth));
-    const q = query.toLowerCase(), list = open.filter(s => !q || s.name.toLowerCase().includes(q) || s.username.includes(q));
-    const last = open.find(s => s.username === S.get('last.user', ''));
-    const booths = S.catalog().booths.filter(b => list.some(s => s.booth === b.code));
+    const booths = S.boothsForSale().filter(b => !S.eventBlock(b.code));
+    if (!booths.some(b => b.code === pick)) pick = booths.length === 1 ? booths[0].code : '';
+    const lastU = S.get('last.user', ''), q = query.toLowerCase();
+    const team = pick ? S.staffFor(pick).sort((a, b) => (b.username === lastU) - (a.username === lastU) || a.name.localeCompare(b.name)) : [];
+    const list = team.filter(s => !q || s.name.toLowerCase().includes(q) || s.username.includes(q));
     const admin = S.staffList('ADMIN')[0];
     $('#step').innerHTML = `
-      <p class="h2" style="margin-bottom:var(--s-3)">Who are you?</p>
-      ${last && !q ? `<div style="margin-bottom:var(--s-4)"><p class="label" style="margin-bottom:var(--s-2)">Last on this phone</p>${card(last, true)}</div>` : ''}
-      ${open.length > 8 ? `<input class="input" id="find" value="${esc(query)}" placeholder="Search your name" autocomplete="off" style="margin-bottom:var(--s-3)">` : ''}
-      ${!open.length ? `<p class="note">${esc(S.activeEvent() ? 'No one is set up for today\'s booths yet. Ask your moderator to add people.' : S.eventBlock(''))}</p>`
-        : !list.length ? '<p class="sub">No name matches. Check the spelling or ask your moderator.</p>'
-        : booths.map(b => `<p class="label" style="margin:var(--s-3) 0 var(--s-2)">${esc(b.name)}</p>
-          <div class="people">${list.filter(s => s.booth === b.code).sort((x, y) => x.name.localeCompare(y.name)).map(s => card(s)).join('')}</div>`).join('')}
-      ${admin ? `<p class="center" style="margin-top:var(--s-5)"><button class="link" data-person="${admin.staff_id}">${icon('shield')} I'm the moderator</button></p>` : ''}
-      <p class="center"><button class="link" data-load-setup>${icon('file')} Got a setup file from the moderator? Load it</button></p>`;
+      <p class="h2" style="margin-bottom:var(--s-3)">Sign in to sell</p>
+      ${!S.activeEvent() ? `<p class="note">${esc(S.eventBlock(''))}</p>`
+        : !booths.length ? '<p class="note">No booths are set up for today\'s event yet. Ask your moderator.</p>'
+        : `<label class="field"><span>Your booth</span>
+            <select class="input big-select" id="boothPick"><option value="">Choose your booth…</option>${booths.map(b => `<option value="${b.code}" ${b.code === pick ? 'selected' : ''}>${esc(b.name)}</option>`).join('')}</select></label>
+          ${pick ? `<p class="h3" style="margin:var(--s-4) 0 var(--s-2)">Who are you?</p>
+            ${team.length > 8 ? `<input class="input" id="find" value="${esc(query)}" placeholder="Search your name" autocomplete="off" style="margin-bottom:var(--s-2)">` : ''}
+            ${!team.length ? '<p class="note">No one is set up for this booth yet. Ask your moderator to add people.</p>'
+              : !list.length ? '<p class="sub">No name matches. Check the spelling.</p>'
+              : `<div class="people">${list.map(card).join('')}</div>`}` : ''}`}
+      ${admin ? `<div class="or-line"><span>or</span></div>
+        <button class="mod-btn" data-person="${admin.staff_id}">${badge(MOD, 'lg')}<span><b>I'm the moderator</b><span class="sub">Events, booths, people, uploads and reports</span></span>${icon('next', 'go')}</button>` : ''}
+      <p class="center" style="margin-top:var(--s-4)"><button class="link" data-load-setup>${icon('file')} Got a setup file from the moderator? Load it</button></p>`;
     const f = $('#find'); if (f && query) { f.focus(); f.setSelectionRange(query.length, query.length); }
   }
 
@@ -49,7 +55,7 @@
     $('#step').innerHTML = `
       <button class="link" data-back>${icon('back')} Not you? Choose again</button>
       <div class="center" style="display:grid;gap:var(--s-2);justify-items:center;margin:var(--s-3) 0 var(--s-4)">
-        ${badge(boothOf(s), 'lg')}<p class="h2">${esc(s.name)}</p><p class="sub">${s.role === 'admin' ? 'Moderator' : esc(boothOf(s).name) + ' · ' + roleLabel(s)}</p>
+        ${badge(s.role === 'admin' ? MOD : here(), 'lg')}<p class="h2">${esc(s.name)}</p><p class="sub">${s.role === 'admin' ? 'Moderator' : 'Signing in at ' + esc(here().name) + ' · ' + roleLabel(s)}</p>
         <p class="sub">Type your 4-digit PIN</p></div>
       <div class="dots" id="dots" aria-label="PIN digits entered"></div>
       <p class="err center" id="err" role="alert"></p>
@@ -78,7 +84,7 @@
     pin = k === 'del' ? pin.slice(0, -1) : (pin + k).slice(0, 4);
     drawDots();
     if (pin.length < 4) return;
-    const s = S.login(who.username, pin);
+    const s = S.login(who.username, pin, who.role === 'admin' ? '' : pick);
     if (s && s.role !== 'admin' && S.eventBlock(s.booth)) { S.logout(); $('#err').textContent = S.eventBlock(s.booth); pin = ''; drawDots(); return; }
     if (s) return location.replace(s.role === 'admin' ? 'admin.html' : 'pos.html');
     const tries = CS.pin.triesLeft('signin');
@@ -97,6 +103,7 @@
     else if ('loadSetup' in t.dataset) $('#setupFile').click();
   });
   document.addEventListener('input', e => { if (e.target.id === 'find') { query = e.target.value; showPeople(); } });
+  document.addEventListener('change', e => { if (e.target.id === 'boothPick') { pick = e.target.value; query = ''; S.setDeviceBooth(pick || null); showPeople(); } });
   document.addEventListener('keydown', e => {
     if (!who || e.target.id === 'find') return;
     if (/^\d$/.test(e.key)) key(e.key);

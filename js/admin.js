@@ -182,8 +182,8 @@ CS.admin = (function () {
         <p class="sub">Everyone can guess 1234. Pick a new PIN before you continue.</p></div></div>
       <form id="fpForm" class="form" novalidate>
         <label class="field"><span>Your username</span><input class="input" name="u" value="moderator" autocapitalize="none" spellcheck="false" autocomplete="off"><small>You will sign in with this.</small></label>
-        <label class="field"><span>New PIN</span><input class="input big-input num" name="a" inputmode="numeric" maxlength="4" autocomplete="off" autofocus></label>
-        <label class="field"><span>Type it again</span><input class="input big-input num" name="b" inputmode="numeric" maxlength="4" autocomplete="off"></label>
+        <label class="field"><span>New PIN</span><input class="input big-input num" name="a" type="password" inputmode="numeric" maxlength="4" autocomplete="new-password" autofocus></label>
+        <label class="field"><span>Type it again</span><input class="input big-input num" name="b" type="password" inputmode="numeric" maxlength="4" autocomplete="new-password"></label>
         <p class="err" id="fpErr" role="alert"></p>
         <button class="btn go wide" type="submit">${icon('check')} Save PIN</button>
       </form>`);

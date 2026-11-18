@@ -32,7 +32,7 @@ CS.views.booths = (function () {
         <p class="h3">${icon('key')} Moderator account</p>
         <p class="sub">${S.isDefaultPin('ADMIN') ? '<span class="bad-text">You are still using the starting PIN 1234. Change it now.</span>' : 'The username and PIN you use to open this page.'}</p>
         <div class="inline-form"><input class="input" id="adminUser" value="${esc((S.staffList('ADMIN')[0] || {}).username || 'moderator')}" placeholder="Username" autocapitalize="none" spellcheck="false" autocomplete="off">
-          <input class="input" id="adminPin" inputmode="numeric" maxlength="4" placeholder="New 4-digit PIN" autocomplete="off">
+          <input class="input" id="adminPin" type="password" inputmode="numeric" maxlength="4" placeholder="New 4-digit PIN" autocomplete="new-password">
           <button class="btn primary" data-admin-pin>Save</button></div>
       </section>`;
   }
@@ -68,7 +68,7 @@ CS.views.booths = (function () {
           </div>
           <p class="ticket-preview" id="tkPreview"></p>
         </fieldset>
-        ${CS.team.html(b.team)}
+        <p class="note">${icon('user')} Managers and cashiers are added on the <b>People</b> tab.</p>
         <div><p class="h3">Stock to track <small class="sub">(optional)</small></p>
           <p class="sub">Supplies this booth uses up, like photo paper or pins. Each sale takes them out by itself.</p></div>
         <div class="stocks">${b.stock.map((s, i) => { const n = hand[s.stock_id]; return `
@@ -106,7 +106,7 @@ CS.views.booths = (function () {
     const fd = new FormData(f);
     Object.assign(draft, { name: fd.get('name').trim(), hint: fd.get('hint').trim(), color: fd.get('color') || draft.color, icon: fd.get('icon') || draft.icon,
       prefix: fd.get('prefix').trim().toUpperCase().replace(/[^A-Z0-9]/g, ''), ticket_start: fd.get('ticket_start').trim(), ticket_reset: fd.get('ticket_reset'), active: fd.get('active') === 'on' });
-    CS.team.read(draft.team);
+
     f.querySelectorAll('.prod-row').forEach(r => {
       const p = draft.products[+r.dataset.i], v = k => r.querySelector(`[data-f="${k}"]`).value;
       Object.assign(p, { name: v('name').trim(), price: v('price').trim(), type: v('type') });
@@ -160,8 +160,7 @@ CS.views.booths = (function () {
     });
     c.stock.forEach(x => { if (x.booth === code && !keepS.has(x.stock_id)) x.active = false; });
 
-    const teamErr = CS.team.apply(b.team, c, code);
-    if (teamErr) return err(teamErr);
+
     S.saveCatalog(c);
     CS.stock.add(stocks.filter(s => parseInt(s.add, 10) > 0).map(s => ({ booth: code, stock_id: s.stock_id, qty: parseInt(s.add, 10), reason: 'restock', note: 'Added by moderator' })));
     closeSheet(); toast('Booth saved.'); CS.admin.refresh(); if (CS.sync) CS.sync.run();
@@ -172,11 +171,11 @@ CS.views.booths = (function () {
     if ('bNew' in d) {
       const used = S.catalog().booths.map(b => b.color);
       draft = { isNew: true, code: '', name: '', hint: '', color: COLORS.find(c => !used.includes(c)) || COLORS[0], icon: 'store', prefix: '', pin: '', active: true,
-        products: [{ sku: '', name: '', price: '', type: 'service', uses: [] }], stock: [], team: [CS.team.blank('manager')] };
+        products: [{ sku: '', name: '', price: '', type: 'service', uses: [] }], stock: [] };
       form();
     } else if (d.bEdit) {
       const c = S.catalog(), b = c.booths.find(x => x.code === d.bEdit);
-      draft = { ...clone(b), isNew: false, team: CS.team.fromCatalog(b.code),
+      draft = { ...clone(b), isNew: false,
         products: c.products.filter(p => p.booth === b.code && p.active).map(p => ({ sku: p.sku, name: p.name, price: String(p.price_c / 100), type: p.type, uses: clone(p.uses || []) })),
         stock: CS.stock.items(b.code).map(s => ({ ...clone(s), add: '' })) };
       form();
@@ -191,10 +190,6 @@ CS.views.booths = (function () {
       read(); const gone = draft.stock.splice(+d.sDel, 1)[0];
       draft.products.forEach(p => { p.uses = (p.uses || []).filter(u => u.stock_id !== gone.stock_id); }); form();
     }
-    else if (d.tAdd) {
-      read(); draft.team.push(CS.team.blank(d.tAdd)); form();
-      const rows = document.querySelectorAll('.team-row [data-tf="name"]'); if (rows.length) rows[rows.length - 1].focus();
-    } else if (d.tDel) { read(); draft.team.splice(+d.tDel, 1); form(); }
     else if ('adminPin' in d) {
       const u = S.uname(document.getElementById('adminUser').value), v = document.getElementById('adminPin').value.trim(), c = clone(S.catalog());
       const me = c.staff.find(x => x.booth === 'ADMIN' && x.active !== false);
@@ -220,16 +215,9 @@ CS.views.booths = (function () {
     }
   }
 
-  // After typing a new person's name, suggest a username (e.g. "juan.photo") if the box is still empty.
   function change(e) {
     const t = e.target;
     if (t.closest && t.closest('.tickets-set')) ticketPreview();
-    if (t.dataset.tf !== 'name') return;
-    const row = t.closest('.team-row'), u = row.querySelector('[data-tf="username"]');
-    if (u.value || !t.value.trim()) return;
-    read();
-    const taken = new Set(S.catalog().staff.filter(x => x.active !== false).map(x => x.username).concat(draft.team.map(p => p.username).filter(Boolean)));
-    u.value = CS.team.suggest(t.value, draft.name || 'booth', taken);
   }
 
   return { render, click, submit, input, change };

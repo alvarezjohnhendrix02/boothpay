@@ -43,6 +43,9 @@ CS.store = (function () {
   /* ---------- people: username + own PIN. role = manager | cashier | admin ---------- */
   const uname = v => String(v || '').toLowerCase().replace(/[^a-z0-9._-]/g, '').slice(0, 20);
   const staffList = (boothCode, c = catalog()) => c.staff.filter(s => s.active !== false && (!boothCode || s.booth === boothCode));
+  // A person works at their home booth, plus any booth the moderator ticked (or every booth).
+  const canWorkAt = (s, b) => s.booth === b || !!s.anyBooth || (s.also || []).includes(b);
+  const staffFor = b => staffList().filter(s => s.role !== 'admin' && canWorkAt(s, b));
   const findUser = (u, c = catalog()) => c.staff.find(s => s.active !== false && s.username === uname(u)) || null;
   // New PINs are salted with the person's id; older ones (before usernames) used the booth code.
   const pinOk = (s, pin) => s.hash_v === 2 ? s.pin_hash === U.hash(pin + ':' + s.staff_id) : s.pin_hash === U.hash(pin + s.booth);
@@ -57,10 +60,11 @@ CS.store = (function () {
   }
   const isDefaultPin = boothCode => staffList(boothCode).some(isDefault);
 
-  function login(username, pin) {
+  function login(username, pin, boothCode) {
     const s = CS.pin ? CS.pin.check(username, pin) : (u => u && pinOk(u, pin) ? u : null)(findUser(username));
     if (!s) return null;
-    const sess = { staff_id: s.staff_id, name: s.name, username: s.username, role: s.role, booth: s.booth, ts: U.now() };
+    const at = s.role !== 'admin' && boothCode && canWorkAt(s, boothCode) ? boothCode : s.booth;
+    const sess = { staff_id: s.staff_id, name: s.name, username: s.username, role: s.role, booth: at, home: s.booth, ts: U.now() };
     set('session', sess); set('last.user', s.username);
     return sess;
   }
@@ -153,7 +157,7 @@ CS.store = (function () {
   return {
     get, set, push, catalog, saveCatalog, booth, productName,
     events, saveEvents, activeEvent, setActiveEvent, boothsForSale,
-    session, deviceBooth, setDeviceBooth, login, logout, uname, staffList, findUser, pinOk, setStaffPin, isDefault, isDefaultPin,
+    session, deviceBooth, setDeviceBooth, login, logout, uname, staffList, staffFor, canWorkAt, findUser, pinOk, setStaffPin, isDefault, isDefaultPin,
     eventBlock, ticketFormat, peekTicketNo, recordSale, salesToday, allSales, voidSale, outboxCount, recordCloseout, closeoutsToday, allCloseouts,
     imports, saveImports, exportSetup, importSetup,
   };

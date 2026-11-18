@@ -10,7 +10,7 @@ CS.pin = (function () {
   // Sign in: username + PIN → staff record or null. approve: any manager of the booth with that PIN.
   // Wrong tries count toward the lock (sign-in lock is for the whole device, so usernames can't be tried one by one).
   function check(username, pin) { return tally('signin', (u => u && S.pinOk(u, pin) ? u : null)(S.findUser(username))); }
-  function checkBooth(b, pin) { return tally('ap.' + b, S.staffList(b).slice().sort((x, y) => (x.role === 'manager' ? 0 : 1) - (y.role === 'manager' ? 0 : 1)).find(s => S.pinOk(s, pin)) || null); }
+  function checkBooth(b, pin) { return tally('ap.' + b, S.staffFor(b).slice().sort((x, y) => (x.role === 'manager' ? 0 : 1) - (y.role === 'manager' ? 0 : 1)).find(s => S.pinOk(s, pin)) || null); }
   function tally(k, s) {
     if (lockLeft(k)) return null;
     const l = S.get(key(k), { fails: 0, until: 0 });

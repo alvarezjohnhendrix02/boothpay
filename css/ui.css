@@ -251,6 +251,16 @@ dialog.sheet::backdrop { background: rgb(24 23 26 / .5); }
 .person.big { min-height: 80px; }
 .person:active { transform: scale(.985); }
 
+.big-select { min-height: 60px !important; font-size: var(--t-18); font-weight: 700; }
+.or-line { display: flex; align-items: center; gap: var(--s-3); margin: var(--s-5) 0 var(--s-3); color: var(--graphite); font-size: var(--t-14); }
+.or-line::before, .or-line::after { content: ""; flex: 1; border-top: var(--hair); }
+.mod-btn { display: flex; align-items: center; gap: var(--s-3); width: 100%; min-height: 84px; padding: var(--s-3) var(--s-4); text-align: left; border-radius: var(--r-2); background: var(--lilac); color: var(--on-pastel); box-shadow: 0 4px 0 #A988E6; }
+.mod-btn > span:not(.badge) { display: grid; flex: 1; }
+.mod-btn b { font-size: var(--t-20); }
+.mod-btn .sub { color: var(--on-pastel); opacity: .8; }
+.mod-btn .badge { background: var(--on-pastel); color: var(--lilac); }
+.mod-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #A988E6; }
+
 /* install + update */
 .install { display: flex; align-items: center; gap: var(--s-3); width: 100%; padding: var(--s-4); text-align: left; border-radius: var(--r-2); background: var(--amber-wash); border: 2px dashed var(--lemon); }
 .install > span { display: grid; gap: 2px; }
