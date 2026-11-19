@@ -27,14 +27,7 @@ CS.views.booths = (function () {
             ${stockLine(b.code)}
             <p class="sub">${n} item${n === 1 ? '' : 's'} · tickets look like <b class="mono">${esc(S.ticketFormat(b, 1))}</b> · ${(t => `${t.filter(x => x.role === 'manager').length} manager(s) · ${t.filter(x => x.role === 'cashier').length} cashier(s)`)(S.staffList(b.code))}${S.isDefaultPin(b.code) ? ' · <span class="bad-text">still using PIN 1234</span>' : ''}</p></div></div>
           <button class="icon-btn edit-btn" data-b-edit="${b.code}" aria-label="Edit ${esc(b.name)}" title="Edit booth & items">${icon('edit')}</button></li>`;
-      }).join('')}</ul>
-      <section class="panel">
-        <p class="h3">${icon('key')} Moderator account</p>
-        <p class="sub">${S.isDefaultPin('ADMIN') ? '<span class="bad-text">You are still using the starting PIN 1234. Change it now.</span>' : 'The username and PIN you use to open this page.'}</p>
-        <div class="inline-form"><input class="input" id="adminUser" value="${esc((S.staffList('ADMIN')[0] || {}).username || 'moderator')}" placeholder="Username" autocapitalize="none" spellcheck="false" autocomplete="off">
-          <input class="input" id="adminPin" type="password" inputmode="numeric" maxlength="4" placeholder="New 4-digit PIN" autocomplete="new-password">
-          <button class="btn primary" data-admin-pin>Save</button></div>
-      </section>`;
+      }).join('')}</ul>`;
   }
 
   function stockLine(code) {
@@ -188,16 +181,6 @@ CS.views.booths = (function () {
       read(); const gone = draft.stock.splice(+d.sDel, 1)[0];
       draft.products.forEach(p => { p.uses = (p.uses || []).filter(u => u.stock_id !== gone.stock_id); }); form();
     }
-    else if ('adminPin' in d) {
-      const u = S.uname(document.getElementById('adminUser').value), v = document.getElementById('adminPin').value.trim(), c = clone(S.catalog());
-      const me = c.staff.find(x => x.booth === 'ADMIN' && x.active !== false);
-      if (!/^[a-z0-9._-]{3,20}$/.test(u)) return toast('The username needs 3 to 20 letters or numbers.', 'bad');
-      if (c.staff.some(x => x.active !== false && x !== me && x.username === u)) return toast('That username is already used.', 'bad');
-      if (v && CS.pin.weak(v)) return toast(CS.pin.weak(v), 'bad');
-      if (!v && S.isDefault(me)) return toast('Set a new PIN too. 1234 is not safe.', 'bad');
-      me.username = u; if (v) S.setStaffPin(me, v);
-      S.saveCatalog(c); toast('Moderator account saved.'); CS.admin.refresh(); if (CS.sync) CS.sync.run();
-    }
   }
   function submit(e) { if (e.target.id === 'boothForm') { e.preventDefault(); save(); } }
   function input(e) {
@@ -205,8 +188,8 @@ CS.views.booths = (function () {
     if (t.name === 'prefix') { const v = t.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4); if (v !== t.value) t.value = v; }
     if (t.name === 'ticket_start') t.value = t.value.replace(/\D/g, '').slice(0, 12);
     if (t.closest && t.closest('.tickets-set')) ticketPreview();
-    if (t.id === 'adminUser' || t.dataset.tf === 'username') { const v = S.uname(t.value); if (v !== t.value) t.value = v; }
-    if (t.id === 'adminPin' || t.dataset.tf === 'pin' || ['low', 'add'].includes(t.dataset.sf) || /^q\d$/.test(t.dataset.f || '')) t.value = t.value.replace(/\D/g, '');
+    if (t.dataset.tf === 'username') { const v = S.uname(t.value); if (v !== t.value) t.value = v; }
+    if (t.dataset.tf === 'pin' || ['low', 'add'].includes(t.dataset.sf) || /^q\d$/.test(t.dataset.f || '')) t.value = t.value.replace(/\D/g, '');
     if (t.dataset.sf === 'name') { // keep the "Uses from stock" choices in step with the name being typed
       const s = draft.stock[+t.closest('.stock-row').dataset.si];
       document.querySelectorAll(`#boothForm option[value="${s.stock_id}"]`).forEach(o => { o.textContent = t.value || 'Unnamed'; });

@@ -23,7 +23,13 @@ CS.views.people = (function () {
             <button class="btn ghost sm" data-pp-edit="${s.staff_id}">${icon('edit')} Edit</button></li>`).join('')}</ul>`
             : '<p class="sub">No one yet. Every booth needs at least one manager.</p>'}
         </section>`; }).join('')}
-      <p class="sub">${icon('shield')} The moderator account is changed in <b>Booths → Moderator account</b>.</p>`;
+      <section class="panel">
+        <p class="h3">${icon('key')} Moderator account</p>
+        <p class="sub">${S.isDefaultPin('ADMIN') ? '<span class="bad-text">You are still using the starting PIN 1234. Change it now.</span>' : 'The username and PIN you use to open this page.'}</p>
+        <div class="inline-form"><input class="input" id="adminUser" value="${esc((S.staffList('ADMIN')[0] || {}).username || 'moderator')}" placeholder="Username" autocapitalize="none" spellcheck="false" autocomplete="off">
+          <input class="input" id="adminPin" type="password" inputmode="numeric" maxlength="4" placeholder="New 4-digit PIN" autocomplete="new-password">
+          <button class="btn primary" data-admin-pin>Save</button></div>
+      </section>`;
   }
 
   function form() {
@@ -93,10 +99,21 @@ CS.views.people = (function () {
     else if (k.ppEdit) { const s = S.catalog().staff.find(x => x.staff_id === k.ppEdit); d = { staff_id: s.staff_id, name: s.name, username: s.username, role: s.role, booth: s.booth, pin: '', also: (s.also || []).slice(), anyBooth: !!s.anyBooth }; form(); }
     else if ('ppSave' in k) save();
     else if ('ppDel' in k) remove();
+    else if ('adminPin' in k) {
+      const u = S.uname(document.getElementById('adminUser').value), v = document.getElementById('adminPin').value.trim(), c = clone(S.catalog());
+      const me = c.staff.find(x => x.booth === 'ADMIN' && x.active !== false);
+      if (!/^[a-z0-9._-]{3,20}$/.test(u)) return toast('The username needs 3 to 20 letters or numbers.', 'bad');
+      if (c.staff.some(x => x.active !== false && x !== me && x.username === u)) return toast('That username is already used.', 'bad');
+      if (v && CS.pin.weak(v)) return toast(CS.pin.weak(v), 'bad');
+      if (!v && S.isDefault(me)) return toast('Set a new PIN too. 1234 is not safe.', 'bad');
+      me.username = u; if (v) S.setStaffPin(me, v);
+      S.saveCatalog(c); toast('Moderator account saved.'); CS.admin.refresh(); if (CS.sync) CS.sync.run();
+    }
   }
   function input(e) {
     const t = e.target;
-    if (t.id === 'ppPin' || t.id === 'ppPin2') t.value = t.value.replace(/\D/g, '');
+    if (t.id === 'adminUser') { const v = S.uname(t.value); if (v !== t.value) t.value = v; }
+    if (t.id === 'ppPin' || t.id === 'ppPin2' || t.id === 'adminPin') t.value = t.value.replace(/\D/g, '');
     if (t.id === 'ppUser') { const v = S.uname(t.value); if (v !== t.value) t.value = v; t.dataset.touched = '1'; }
     if (t.id === 'ppName') { // keep the made-for-you username in step with the name until they type their own
       const u = document.getElementById('ppUser');
