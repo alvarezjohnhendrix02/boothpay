@@ -105,13 +105,16 @@
       </div>
       <div class="row" style="flex-wrap:wrap"><p class="h3">Today's list</p>
         <button class="btn ghost sm" data-export ${all.length ? '' : 'disabled'}>${icon('download')} Send to moderator (CSV)</button></div>
-      ${all.length ? `<ol class="feed">${all.map(s => `
+      ${all.length ? `<ol class="feed">${all.map(s => {
+        const what = s.items.map(i => `${esc(i.name || (bySku[i.sku] || { name: i.sku }).name)}${i.qty > 1 ? ' ×' + i.qty : ''}`).join(', ');
+        const [cname, ...cmore] = String(s.customer_name || '').split(' · '); // "Alvin · Teacher · High School" → name + details
+        return `
         <li class="${s.status === 'void' ? 'voided' : ''}"><time class="num">${time(s.ts)}</time>
-          <span>${s.items.map(i => `${esc(i.name || (bySku[i.sku] || { name: i.sku }).name)}${i.qty > 1 ? ' ×' + i.qty : ''}`).join(', ')}</span>
+          <span class="feed-main">${cname ? `<b>${esc(cname)}</b>` : what}</span>
           <span class="num"><b>${money(s.total_c)}</b></span>
-          <span class="meta">${s.staff_name ? 'by ' + esc(s.staff_name.split(' ')[0]) + ' · ' : ''}${s.customer_name ? esc(s.customer_name) + ' · ' : ''}${s.status === 'void' ? `<span class="pill bad">Undone: ${esc(s.void_reason)}</span>`
+          <span class="meta">${cname ? what + ' · ' : ''}${cmore.length ? esc(cmore.join(' · ')) + ' · ' : ''}${s.staff_name ? 'by ' + esc(s.staff_name.split(' ')[0]) + ' · ' : ''}${s.status === 'void' ? `<span class="pill bad">Undone: ${esc(s.void_reason)}</span>`
             : (s.pay === 'gcash' ? 'GCash ' + esc(s.gcash_ref) : 'Cash')}${s.tickets.length ? ' · <span class="mono">' + s.tickets.map(t => t.ticket_no).join(' ') + '</span>' : ''}</span>
-          ${s.status === 'paid' ? `<button class="icon-btn" data-undo="${s.sale_id}" aria-label="Undo this sale" title="Undo this sale">${icon('undo')}</button>` : '<span></span>'}</li>`).join('')}</ol>`
+          ${s.status === 'paid' ? `<button class="icon-btn" data-undo="${s.sale_id}" aria-label="Undo this sale" title="Undo this sale">${icon('undo')}</button>` : '<span></span>'}</li>`; }).join('')}</ol>`
         : `<div class="empty">${icon('chart')}<p>No sales yet today. Your first sale will show up here.</p></div>`}`;
   }
 
