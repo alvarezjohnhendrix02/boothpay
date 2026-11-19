@@ -40,6 +40,7 @@
 
   /* ---------- render ---------- */
   function render() {
+    if (CS.queue) CS.queue.badge();
     const blocked = S.eventBlock(sess.booth);
     if (blocked) { // the moderator stopped the event: selling pauses, Today / Close day still work
       $('#grid').innerHTML = `<div class="empty" style="grid-column:1/-1">${icon('calendar')}<p class="h3">Selling is paused</p><p>${esc(blocked)}</p></div>`;
@@ -226,6 +227,7 @@
   $('[data-tab="close"]').innerHTML = icon('cash') + '<span>Close<span class="hide-sm"> day</span></span>';
   $('[data-tab="stock"]').innerHTML = icon('sticker') + 'Stock';
   $('[data-tab="stock"]').hidden = !CS.stock.items(sess.booth).length;
+  CS.queue.init(sess);
   render();
   CS.sync.start();
 })();

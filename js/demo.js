@@ -66,6 +66,13 @@ CS.demo = (function () {
       (byBooth[booth] = byBooth[booth] || []).push(sale);
       if (!voided) items.forEach(x => (c.products.find(p => p.sku === x.sku).uses || []).forEach(u => mv(booth, u.stock_id, -u.qty * x.qty, 'sale', ts, '', sale_id)));
     }
+    Object.values(byBooth).forEach(list => { // most tickets done; the last few still waiting or ongoing
+      const tix = list.filter(x => x.status === 'paid').flatMap(x => x.tickets);
+      tix.forEach((t, j) => { const left = tix.length - j;
+        if (left <= 2) t.status = 'queued';
+        else if (left === 3) { t.status = 'serving'; t.ts_started = new Date(new Date(t.ts_created).getTime() + 4 * 60000).toISOString(); }
+        else { t.status = 'done'; t.ts_started = t.ts_created; t.ts_ready = new Date(new Date(t.ts_created).getTime() + (5 + Math.floor(rnd() * 8)) * 60000).toISOString(); } });
+    });
     Object.entries(byBooth).forEach(([b, list]) => S.set(`sales.${b}.${day}`, list));
     Object.entries(ctr).forEach(([b, n]) => S.set(`ctr.${b}.${day}`, n));
     S.set('moves', moves);
@@ -81,7 +88,7 @@ CS.demo = (function () {
     S.set(`close.PHOTO.${day}`, [{ close_id: 'PHOTO-DEMO-CLOSE', ts: at(16, 40), event_id: EV, booth: 'PHOTO', staff_id: 'PHOTO-D0', float_c: 50000, cash_sales_c: cash,
       expected_cash_c: 50000 + cash, counted_cash_c: 50000 + cash - 2000, variance_c: -2000, gcash_total_c: 0, denoms: '{}', note: 'Gave ₱20 change to Stickers booth' }]);
 
-    S.set('setup.ts', U.now()); S.set('demo.built', day + ':2');
+    S.set('setup.ts', U.now()); S.set('demo.built', day + ':3');
   }
 
   // A small PMS-style export (with one refund and a TOTAL line) to try Upload PMS.
@@ -111,7 +118,7 @@ CS.demo = (function () {
     else { try { sessionStorage.removeItem('boothpay.demo'); } catch (err) { /* blocked */ } location.replace('index.html'); }
   });
 
-  if (S.get('demo.built', '') !== day + ':2') build(); // a fresh sample day each day
+  if (S.get('demo.built', '') !== day + ':3') build(); // a fresh sample day each day
   if (document.body) banner(); else document.addEventListener('DOMContentLoaded', banner);
   return { on: true, PIN, build, pmsCSV };
 })();

@@ -7,7 +7,7 @@
  * 3. Paste the web app URL and the same key in BoothPay → Moderator → Sync & phones.
  */
 const SYNC_KEY = 'CHANGE-ME';
-const VERSION = 4; // 2 = cash counts (CloseOuts) · 3 = customers (Customers) · 4 = stock (Moves) + expenses (Expenses)
+const VERSION = 5; // 2 = cash counts · 3 = customers · 4 = stock + expenses · 5 = ticket queue (TicketStatus)
 
 // Columns per tab. Writes are append-only; a row whose _key already exists is skipped.
 const TABS = {
@@ -18,6 +18,7 @@ const TABS = {
   Moves: ['move_id', 'ts', 'booth', 'stock_id', 'name', 'qty', 'reason', 'ref_id', 'staff_id', 'note'],
   Expenses: ['exp_id', 'ts', 'ts_v', 'date', 'event_id', 'booth', 'type', 'item', 'qty', 'unit_c', 'amount_c', 'amount_php', 'paid_by', 'note', 'status'],
   Customers: ['customer_id', 'ts', 'name', 'grade', 'section', 'type', 'booth'],
+  TicketStatus: ['ticket_no', 'sale_id', 'booth', 'status', 'ts', 'staff_id'],
   CloseOuts: ['close_id', 'ts', 'event_id', 'booth', 'staff_id', 'float_c', 'cash_sales_c', 'expected_cash_c', 'counted_cash_c', 'variance_c', 'variance_php', 'gcash_total_c', 'denoms', 'note'],
 };
 const DATE_FIELDS = { ts: 1, ts_created: 1, ts_v: 1 };

@@ -49,7 +49,7 @@ Do this once, on a laptop, with the Google account that should own the sales rec
 4. **Save**, then **Deploy → Manage deployments → pencil (edit) → Version: New version → Deploy**.
    The web app URL stays the same, so phones need nothing new.
 
-Version 2 adds **CloseOuts** (cash counts), version 3 **Customers**, version 4 **Moves** (stock) and **Expenses**.
+Version 2 adds **CloseOuts** (cash counts), version 3 **Customers**, version 4 **Moves** (stock) and **Expenses**, version 5 **TicketStatus** (ticket queue).
 Until you update, those records wait safely on the booth phones (their top bar says "Some records waiting · update Sheet")
 and are sent once you do. Sales keep syncing either way.
 

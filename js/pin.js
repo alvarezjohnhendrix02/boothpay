@@ -67,7 +67,7 @@ CS.pin = (function () {
     lockView();
   }
   document.addEventListener('click', e => { const t = e.target.closest('[data-ap-key]'); if (t && ap) key2(t.dataset.apKey); });
-  document.addEventListener('close', e => { if (e.target.id === 'sheet' && ap) { clearTimeout(ap.timer); ap = null; } }, true);
+  document.addEventListener('close', e => { if (e.target.id === 'sheet' && !e.target.open && ap) { clearTimeout(ap.timer); ap = null; } }, true);
 
   return { check, lockLeft, triesLeft, clock, weak, approve };
 })();

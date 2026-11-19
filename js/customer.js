@@ -170,7 +170,7 @@ CS.customer = (function () {
     document.getElementById('cuSecLabel').textContent = si[0]; inp.placeholder = si[1];
     if (form.c.grade) inp.focus();
   });
-  document.addEventListener('close', e => { if (e.target.id === 'sheet') form = null; }, true);
+  document.addEventListener('close', e => { if (e.target.id === 'sheet' && !e.target.open) form = null; }, true); // reopened in the meantime = keep the form
 
   return { GRADES, LEVELS, levelOf, name, liveName, section, liveSection, isStudent, gradeLabel, details, label, suggest, commit, byId, all, open };
 })();

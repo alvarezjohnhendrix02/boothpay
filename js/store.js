@@ -131,6 +131,20 @@ CS.store = (function () {
   const closeoutsToday = boothCode => get(`close.${boothCode}.${U.today()}`, []);
   const allCloseouts = () => keys('close.').flatMap(k => get(k, []));
 
+  // Ticket queue: queued (not yet served) → serving (ongoing) → done. Each change is a new Sheet row.
+  function setTicketStatus(saleId, boothCode, ts, ticketNo, status, staff) {
+    const k = `sales.${boothCode}.${U.dayOf(ts)}`, list = get(k, []), s = list.find(x => x.sale_id === saleId);
+    const t = s && (s.tickets || []).find(x => x.ticket_no === ticketNo);
+    if (!t || t.status === status) return false;
+    const now = U.now();
+    t.status = status;
+    if (status === 'serving') { t.ts_started = t.ts_started || now; t.ts_ready = ''; }
+    if (status === 'done') t.ts_ready = now;
+    set(k, list);
+    push([{ tab: 'TicketStatus', data: { ticket_no: ticketNo, sale_id: saleId, booth: boothCode, status, ts: now, staff_id: staff.staff_id } }]);
+    return true;
+  }
+
   // Undo = mark void + log a reversing row. Nothing is deleted.
   function voidSale(saleId, boothCode, ts, reason, staff) {
     const k = `sales.${boothCode}.${U.dayOf(ts)}`, list = get(k, []), s = list.find(x => x.sale_id === saleId);
@@ -160,7 +174,7 @@ CS.store = (function () {
     get, set, push, catalog, saveCatalog, booth, productName,
     events, saveEvents, activeEvent, setActiveEvent, boothsForSale,
     session, deviceBooth, setDeviceBooth, login, logout, uname, staffList, staffFor, canWorkAt, findUser, pinOk, setStaffPin, isDefault, isDefaultPin,
-    eventBlock, ticketFormat, peekTicketNo, recordSale, salesToday, allSales, voidSale, outboxCount, recordCloseout, closeoutsToday, allCloseouts,
+    eventBlock, ticketFormat, peekTicketNo, setTicketStatus, recordSale, salesToday, allSales, voidSale, outboxCount, recordCloseout, closeoutsToday, allCloseouts,
     imports, saveImports, exportSetup, importSetup, demo: DEMO,
     wipe: () => keys('').forEach(del), // demo reset only
   };
