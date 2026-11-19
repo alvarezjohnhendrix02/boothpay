@@ -176,12 +176,12 @@ CS.views.reports = (function () {
     const scope = [f.event === '*' ? 'All events' : evName(f.event), f.booth === '*' ? 'all booths' : boothOf(f.booth).name, f.day === '*' ? 'all days' : dayLabel(f.day)].join(' · ');
 
     el.innerHTML = `
-      <div class="view-head"><div><h2 class="h1">Reports</h2><p class="sub">Booth sales and PMS uploads, together in one summary.</p></div></div>
-      <div class="filters no-print">
+      <div class="view-head"><div><h2 class="h1">Reports</h2><p class="sub">Booth sales and PMS uploads, together in one summary.</p></div>
+      <div class="filters compact no-print">
         <label class="field"><span>Event</span><select class="input" data-f="event">${opt('*', f.event, 'All events')}${evs.map(e => opt(e.event_id, f.event, e.name)).join('')}${evIds.includes('') ? opt('', f.event, 'No event') : ''}</select></label>
         <label class="field"><span>Booth</span><select class="input" data-f="booth">${opt('*', f.booth, 'All booths')}${boothCodes.map(c => opt(c, f.booth, boothOf(c).name)).join('')}</select></label>
         <label class="field"><span>Day</span><select class="input" data-f="day">${opt('*', f.day, 'All days')}${days.map(d => opt(d, f.day, dayLabel(d))).join('')}</select></label>
-      </div>
+      </div></div>
       <p class="print-only h3">${esc(scope)}</p>
       ${!rows.length ? `<div class="empty big">${icon('chart')}<p class="h3">No sales to show yet</p>
         <p>Sales made on this device appear here by themselves. For the PMS and other booth phones, go to <b>Upload PMS</b>.</p>
@@ -191,7 +191,7 @@ CS.views.reports = (function () {
         <div class="stat"><p class="label">Transactions</p><p class="big-num">${rows.length}</p></div>
         <div class="stat"><p class="label">Average sale</p><p class="big-num">${money(Math.round(gross / rows.length))}</p></div>
         <div class="stat"><p class="label">Items sold</p><p class="big-num">${units}</p></div>
-        <div class="stat"><p class="label">Net sales <span class="sub">(after expenses &amp; LEEF)</span></p><p class="big-num">${money(netOf(rows, gross).net)}</p></div>
+        <div class="stat"><p class="label">Net sales</p><p class="big-num">${money(netOf(rows, gross).net)}</p><p class="sub">after expenses &amp; LEEF</p></div>
       </div>
       <div class="report-grid">
         ${moneyPanel(rows)}
