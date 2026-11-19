@@ -18,17 +18,16 @@ CS.views.people = (function () {
             <button class="btn ghost sm" data-pp-new="${b.code}">${icon('plus')} Add</button></div>
           ${team.length ? `<ul class="people-list">${team.map(s => `<li>
             <span><b>${esc(s.name)}</b> <span class="pill ${s.role === 'manager' ? 'ok' : ''}">${s.role === 'manager' ? 'Manager' : 'Cashier'}</span>
-              ${S.isDefault(s) ? '<span class="pill bad">PIN still 1234</span>' : ''}<br><span class="sub mono">@${esc(s.username)}</span>
-              ${s.anyBooth ? '<span class="sub"> · can sign in at any booth</span>' : (s.also || []).length ? `<span class="sub"> · also at ${s.also.map(c => esc((S.booth(c) || { name: c }).name)).join(', ')}</span>` : ''}</span>
+              ${S.isDefault(s) ? '<span class="pill bad">PIN still 1234</span>' : ''}
+              ${s.anyBooth ? '<br><span class="sub">Can sign in at any booth</span>' : (s.also || []).length ? `<br><span class="sub">Also at ${s.also.map(c => esc((S.booth(c) || { name: c }).name)).join(', ')}</span>` : ''}</span>
             <button class="btn ghost sm" data-pp-edit="${s.staff_id}">${icon('edit')} Edit</button></li>`).join('')}</ul>`
             : '<p class="sub">No one yet. Every booth needs at least one manager.</p>'}
         </section>`; }).join('')}
       <section class="panel">
         <p class="h3">${icon('key')} Moderator account</p>
-        <p class="sub">${S.isDefaultPin('ADMIN') ? '<span class="bad-text">You are still using the starting PIN 1234. Change it now.</span>' : 'The username and PIN you use to open this page.'}</p>
-        <div class="inline-form"><input class="input" id="adminUser" value="${esc((S.staffList('ADMIN')[0] || {}).username || 'moderator')}" placeholder="Username" autocapitalize="none" spellcheck="false" autocomplete="off">
-          <input class="input" id="adminPin" type="password" inputmode="numeric" maxlength="4" placeholder="New 4-digit PIN" autocomplete="new-password">
-          <button class="btn primary" data-admin-pin>Save</button></div>
+        <p class="sub">${S.isDefaultPin('ADMIN') ? '<span class="bad-text">You are still using the starting PIN 1234. Change it now.</span>' : 'The PIN you type after tapping “I’m the moderator”.'}</p>
+        <div class="inline-form"><input class="input" id="adminPin" type="password" inputmode="numeric" maxlength="4" placeholder="New 4-digit PIN" autocomplete="new-password">
+          <button class="btn primary" data-admin-pin>Change PIN</button></div>
       </section>`;
   }
 
@@ -42,8 +41,6 @@ CS.views.people = (function () {
           <label class="field"><span>Booth</span><select class="input" id="ppBooth">${booths.map(b => `<option value="${b.code}" ${b.code === d.booth ? 'selected' : ''}>${esc(b.name)}</option>`).join('')}</select></label>
           <label class="field"><span>Role</span><select class="input" id="ppRole"><option value="cashier" ${d.role === 'cashier' ? 'selected' : ''}>Cashier (sells)</option><option value="manager" ${d.role === 'manager' ? 'selected' : ''}>Manager (can undo, close day, stock)</option></select></label>
         </div>
-        <label class="field"><span>Username</span><input class="input" id="ppUser" value="${esc(d.username)}" placeholder="maria.photo" autocapitalize="none" spellcheck="false" autocomplete="off">
-          <small>Suggested from the name; you can change it. Letters, numbers, dots and dashes.</small></label>
         <div class="field-row">
           <label class="field"><span>${d.staff_id ? 'New PIN' : 'PIN'} <small>(4 digits)</small></span><input class="input num" id="ppPin" type="password" inputmode="numeric" maxlength="4" placeholder="${d.staff_id ? 'Leave blank to keep' : '••••'}" autocomplete="new-password"></label>
           <label class="field"><span>Type the PIN again</span><input class="input num" id="ppPin2" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="new-password"></label>
@@ -60,16 +57,20 @@ CS.views.people = (function () {
 
   function read() {
     const v = id => document.getElementById(id).value.trim();
-    Object.assign(d, { name: v('ppName'), booth: v('ppBooth'), role: v('ppRole'), pin: v('ppPin'), pin2: v('ppPin2'), username: S.uname(v('ppUser')),
+    Object.assign(d, { name: v('ppName'), booth: v('ppBooth'), role: v('ppRole'), pin: v('ppPin'), pin2: v('ppPin2'),
       anyBooth: document.getElementById('ppAny').checked, also: [...document.querySelectorAll('#ppAlso input:checked')].map(i => i.value).filter(c => c !== v('ppBooth')) });
   }
   const taken = except => new Set(S.catalog().staff.filter(s => s.active !== false && s.staff_id !== except).map(s => s.username));
 
-  // Save through the booth's Team rules (unique usernames, safe PINs, at least one manager per booth).
+  // Save through the booth's Team rules (safe PINs, at least one manager per booth). The username is a hidden id made from the name.
+  // No two people with the same name on one booth's sign-in list, since the name is what they tap.
   function save() {
     read();
     const err = m => { document.getElementById('ppErr').textContent = m; };
     if (CS.customer.name(d.name).length < 2) return err('Type their name.');
+    const nm = CS.customer.name(d.name).toLowerCase(), all = S.catalog().booths.filter(b => b.active !== false).map(b => b.code);
+    const clash = (d.anyBooth ? all : [d.booth, ...d.also]).find(b => S.staffFor(b).some(s => s.staff_id !== d.staff_id && s.role !== 'admin' && s.name.toLowerCase() === nm));
+    if (clash) return err(`Someone named ${CS.customer.name(d.name)} can already sign in at ${(S.booth(clash) || { name: clash }).name}. Add a last name or initial so they can tell who is who.`);
     if (!d.username) d.username = CS.team.suggest(d.name, (S.booth(d.booth) || {}).name || 'booth', taken(d.staff_id));
     if ((d.pin || d.pin2) && d.pin !== d.pin2) return err('The two PINs are not the same. Type them again.');
     const c = clone(S.catalog()), old = d.staff_id ? (c.staff.find(s => s.staff_id === d.staff_id) || {}).booth : '';
@@ -100,25 +101,17 @@ CS.views.people = (function () {
     else if ('ppSave' in k) save();
     else if ('ppDel' in k) remove();
     else if ('adminPin' in k) {
-      const u = S.uname(document.getElementById('adminUser').value), v = document.getElementById('adminPin').value.trim(), c = clone(S.catalog());
+      const v = document.getElementById('adminPin').value.trim(), c = clone(S.catalog());
       const me = c.staff.find(x => x.booth === 'ADMIN' && x.active !== false);
-      if (!/^[a-z0-9._-]{3,20}$/.test(u)) return toast('The username needs 3 to 20 letters or numbers.', 'bad');
-      if (c.staff.some(x => x.active !== false && x !== me && x.username === u)) return toast('That username is already used.', 'bad');
+      if (!v) return toast('Type a new 4-digit PIN.', 'bad');
       if (v && CS.pin.weak(v)) return toast(CS.pin.weak(v), 'bad');
-      if (!v && S.isDefault(me)) return toast('Set a new PIN too. 1234 is not safe.', 'bad');
-      me.username = u; if (v) S.setStaffPin(me, v);
-      S.saveCatalog(c); toast('Moderator account saved.'); CS.admin.refresh(); if (CS.sync) CS.sync.run();
+      S.setStaffPin(me, v);
+      S.saveCatalog(c); toast('Moderator PIN changed.'); CS.admin.refresh(); if (CS.sync) CS.sync.run();
     }
   }
   function input(e) {
     const t = e.target;
-    if (t.id === 'adminUser') { const v = S.uname(t.value); if (v !== t.value) t.value = v; }
     if (t.id === 'ppPin' || t.id === 'ppPin2' || t.id === 'adminPin') t.value = t.value.replace(/\D/g, '');
-    if (t.id === 'ppUser') { const v = S.uname(t.value); if (v !== t.value) t.value = v; t.dataset.touched = '1'; }
-    if (t.id === 'ppName') { // keep the made-for-you username in step with the name until they type their own
-      const u = document.getElementById('ppUser');
-      if (!d.staff_id && !u.dataset.touched) u.value = t.value.trim() ? CS.team.suggest(t.value, (S.booth(document.getElementById('ppBooth').value) || {}).name || 'booth', taken('')) : '';
-    }
   }
   function change(e) {
     const t = e.target;
