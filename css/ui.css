@@ -35,6 +35,10 @@ ol, ul { padding: 0; list-style: none; }
 .btn { min-height: var(--tap); padding: 0 var(--s-5); border-radius: var(--r-1); font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: var(--s-2); transition: background var(--dur) var(--ease), transform var(--dur) var(--ease); white-space: nowrap; }
 .btn:active:not(:disabled) { transform: scale(.98); }
 .btn.primary { background: var(--ink); color: var(--on-ink); }
+/* button stack in forms: main button on top, full width */
+.btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-2); }
+.btn-grid > :first-child { grid-column: 1 / -1; }
+.btn-grid > :last-child:nth-child(2n) { grid-column: 1 / -1; } /* a button left alone on its row fills it */
 .btn.go { background: var(--mint); color: var(--on-pastel); box-shadow: 0 3px 0 #4FC08D; }
 .btn.danger { background: var(--coral); color: var(--on-pastel); box-shadow: 0 3px 0 #E66655; }
 .btn.ghost { border: 2px solid var(--rule); background: var(--card); }

@@ -104,7 +104,7 @@ CS.customer = (function () {
           <input class="input" id="cuSection" value="${esc(c.section)}" placeholder="${si[1]}" autocomplete="off" spellcheck="false">
           <small id="cuSecHint"></small></label>
         <p class="err" id="cuErr" role="alert"></p>
-        <div class="btn-grid"><button type="button" class="btn go" data-cu-save>${icon('check')} Use this customer</button>
+        <div class="btn-grid"><button type="button" class="btn go" data-cu-save>${icon('check')} Done</button>
           <button type="button" class="btn ghost" data-cu-skip>Cancel</button></div>
         <p class="sub">Only the name and grade/section are saved, for club records.</p>
       </div>`);

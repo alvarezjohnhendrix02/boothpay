@@ -51,9 +51,6 @@ fieldset.field { border: 0; padding: 0; margin: 0; }
 .steps { display: grid; gap: var(--s-3); }
 .steps li { display: flex; gap: var(--s-3); align-items: flex-start; }
 .steps > li > b { flex: none; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--lemon); color: var(--on-pastel); font-size: var(--t-14); }
-.btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-2); }
-.btn-grid > :first-child { grid-column: 1 / -1; }
-.btn-grid > :last-child:nth-child(2n) { grid-column: 1 / -1; } /* a button left alone on its row fills it */
 
 /* upload */
 .drop { display: grid; justify-items: center; gap: var(--s-2); padding: var(--s-6) var(--s-4); border: 3px dashed var(--rule); border-radius: var(--r-3); background: var(--card); cursor: pointer; text-align: center; transition: border-color var(--dur); }
