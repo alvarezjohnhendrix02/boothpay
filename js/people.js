@@ -34,8 +34,7 @@ CS.views.people = (function () {
     const booths = S.catalog().booths.filter(b => b.active !== false);
     openSheet(`${head(d.staff_id ? 'Edit ' + esc(d.name) : 'Add a person')}
       <div class="form" id="ppForm">
-        <label class="field"><span>Name</span><input class="input" id="ppName" value="${esc(d.name)}" placeholder="Maria Santos" autocomplete="off" ${d.staff_id ? '' : 'autofocus'}>
-          <small>This is what they tap on the booth phone.</small></label>
+        <label class="field"><span>Name</span><input class="input" id="ppName" value="${esc(d.name)}" placeholder="Maria Santos" autocomplete="off" ${d.staff_id ? '' : 'autofocus'}></label>
         <div class="field-row">
           <label class="field"><span>Booth</span><select class="input" id="ppBooth">${booths.map(b => `<option value="${b.code}" ${b.code === d.booth ? 'selected' : ''}>${esc(b.name)}</option>`).join('')}</select></label>
           <label class="field"><span>Role</span><select class="input" id="ppRole"><option value="cashier" ${d.role === 'cashier' ? 'selected' : ''}>Cashier (sells)</option><option value="manager" ${d.role === 'manager' ? 'selected' : ''}>Manager (can undo, close day, stock)</option></select></label>
@@ -44,7 +43,7 @@ CS.views.people = (function () {
           <label class="field"><span>${d.staff_id ? 'New PIN' : 'PIN'} <small>(4 digits)</small></span><input class="input num" id="ppPin" type="password" inputmode="numeric" maxlength="4" placeholder="${d.staff_id ? 'Leave blank to keep' : '••••'}" autocomplete="new-password"></label>
           <label class="field"><span>Type the PIN again</span><input class="input num" id="ppPin2" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="new-password"></label>
         </div>
-        <fieldset class="field"><span>Can also sign in at</span><small>Their role is the same at every booth they can sign in to.</small>
+        <fieldset class="field"><span>Can also sign in at</span>
           <label class="check"><input type="checkbox" id="ppAny" ${d.anyBooth ? 'checked' : ''}> Any booth</label>
           <div class="checks" id="ppAlso" ${d.anyBooth ? 'hidden' : ''}>${booths.filter(b => b.code !== d.booth).map(b => `<label class="check"><input type="checkbox" value="${b.code}" ${(d.also || []).includes(b.code) ? 'checked' : ''}>${badge(b, 'sm')}${esc(b.name)}</label>`).join('') || '<p class="sub">No other booths.</p>'}</div>
         </fieldset>
