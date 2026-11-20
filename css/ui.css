@@ -135,8 +135,6 @@ dialog.sheet::backdrop { background: rgb(24 23 26 / .5); }
   .cart-side { display: grid; gap: var(--s-3); align-content: start; border-left: var(--hair); padding: var(--s-5); position: sticky; top: 120px; align-self: start; }
   .cartbar { display: none !important; }
 }
-.howto { display: flex; flex-wrap: wrap; gap: var(--s-2) var(--s-4); padding: var(--s-4) var(--s-4) 0; font-size: var(--t-14); color: var(--graphite); font-weight: 600; }
-.howto > span > b:first-child { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--lemon); color: var(--on-pastel); font-size: var(--t-12); margin-right: 6px; }
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: var(--s-3); padding: var(--s-4); }
 .tile { position: relative; background: var(--card); border-radius: var(--r-2); box-shadow: var(--lift); border-top: 8px solid var(--booth); min-height: 128px; padding: var(--s-4); text-align: left; display: flex; flex-direction: column; justify-content: space-between; gap: var(--s-2); transition: transform var(--dur) var(--ease), background var(--dur); }
 .tile:active { transform: scale(.97); }

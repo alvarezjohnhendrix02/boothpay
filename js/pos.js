@@ -223,7 +223,7 @@
   const ev = S.activeEvent();
   $('#boothBadge').innerHTML = badge(booth);
   $('#boothName').textContent = booth.name;
-  $('#eventName').textContent = `${sess.name} · ${sess.role === 'cashier' ? 'Cashier' : 'Manager'}${ev ? ' · ' + ev.name : ''}`;
+  $('#eventName').textContent = `Hello, ${sess.name}`;
   $('#signout').innerHTML = icon('logout');
   $('[data-tab="sell"]').innerHTML = icon('cart') + 'Sell';
   $('[data-tab="today"]').innerHTML = icon('chart') + '<span>Today<span class="hide-sm">\'s sales</span></span>';
