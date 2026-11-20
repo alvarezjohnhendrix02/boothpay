@@ -15,8 +15,7 @@ CS.views.booths = (function () {
     }
     const c = S.catalog();
     el.innerHTML = `
-      <div class="view-head"><div><h2 class="h1">Booths</h2>
-        <p class="sub">Each booth has its own items, prices, color and PIN.</p></div>
+      <div class="view-head"><div><h2 class="h1">Booths</h2></div>
         <button class="btn primary" data-b-new>${icon('plus')} New booth</button></div>
       <ul class="cards">${c.booths.map(b => {
         const n = c.products.filter(p => p.booth === b.code && p.active).length;
@@ -24,8 +23,13 @@ CS.views.booths = (function () {
           <div class="card-main row-start">${badge(b, 'lg')}<div>
             <p class="h3">${esc(b.name)} ${b.active === false ? '<span class="pill">Hidden</span>' : ''}</p>
             <p class="sub">${esc(b.hint || '')}</p>
-            ${stockLine(b.code)}
-            <p class="sub">${n} item${n === 1 ? '' : 's'} · tickets look like <b class="mono">${esc(S.ticketFormat(b, 1))}</b> · ${(t => `${t.filter(x => x.role === 'manager').length} manager(s) · ${t.filter(x => x.role === 'cashier').length} cashier(s)`)(S.staffList(b.code))}${S.isDefaultPin(b.code) ? ' · <span class="bad-text">still using PIN 1234</span>' : ''}</p></div></div>
+            <div class="b-facts">
+              <span>${icon('tag')}${n} item${n === 1 ? '' : 's'}</span>
+              <span>${icon('ticket')}<b class="mono">${esc(S.ticketFormat(b, 1))}</b></span>
+              <span>${icon('user')}${(t => { const m = t.filter(x => x.role === 'manager').length, k = t.filter(x => x.role === 'cashier').length; return `${m} manager${m === 1 ? '' : 's'} · ${k} cashier${k === 1 ? '' : 's'}`; })(S.staffList(b.code))}</span>
+              ${S.isDefaultPin(b.code) ? '<span class="bad-text">Still using PIN 1234</span>' : ''}
+            </div>
+            ${stockLine(b.code)}</div></div>
           <button class="icon-btn edit-btn" data-b-edit="${b.code}" aria-label="Edit ${esc(b.name)}" title="Edit booth & items">${icon('edit')}</button></li>`;
       }).join('')}</ul>`;
   }

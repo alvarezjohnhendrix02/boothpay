@@ -9,8 +9,7 @@ CS.views.people = (function () {
   function render(el) {
     const c = S.catalog(), booths = c.booths.filter(b => b.active !== false);
     el.innerHTML = `
-      <div class="view-head"><div><h2 class="h1">People</h2>
-        <p class="sub">Everyone who sells. On the booth phone they pick the booth, tap their name and type their own PIN.</p></div>
+      <div class="view-head"><div><h2 class="h1">People</h2></div>
         <button class="btn primary" data-pp-new>${icon('plus')} Add a person</button></div>
       ${booths.map(b => { const team = S.staffList(b.code).sort((x, y) => (x.role === 'manager' ? 0 : 1) - (y.role === 'manager' ? 0 : 1) || x.name.localeCompare(y.name)); return `
         <section class="panel" style="border-left:6px solid ${b.color}">
@@ -25,7 +24,7 @@ CS.views.people = (function () {
         </section>`; }).join('')}
       <section class="panel">
         <p class="h3">${icon('key')} Moderator account</p>
-        <p class="sub">${S.isDefaultPin('ADMIN') ? '<span class="bad-text">You are still using the starting PIN 1234. Change it now.</span>' : 'The PIN you type after tapping “I’m the moderator”.'}</p>
+        ${S.isDefaultPin('ADMIN') ? '<p class="sub"><span class="bad-text">You are still using the starting PIN 1234. Change it now.</span></p>' : ''}
         <div class="inline-form"><input class="input" id="adminPin" type="password" inputmode="numeric" maxlength="4" placeholder="New 4-digit PIN" autocomplete="new-password">
           <button class="btn primary" data-admin-pin>Change PIN</button></div>
       </section>`;

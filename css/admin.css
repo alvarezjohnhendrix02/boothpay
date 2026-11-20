@@ -182,3 +182,9 @@ fieldset.field { border: 0; padding: 0; margin: 0; }
 .ev-dot.on { background: var(--mint); box-shadow: 0 0 0 4px var(--fix-wash); }
 .ev-dot.wait { background: var(--lemon); }
 .ev-dot.off { background: var(--coral); }
+/* booth cards: facts in one tidy row, stock under it */
+.b-facts { display: flex; flex-wrap: wrap; gap: var(--s-1) var(--s-4); margin-top: var(--s-2); font-size: var(--t-14); color: var(--graphite); }
+.b-facts > span { display: inline-flex; align-items: center; gap: 6px; }
+.b-facts .ic { width: 16px; height: 16px; }
+.b-facts .mono { color: var(--ink); }
+.card-main .badges { margin-top: var(--s-2); }

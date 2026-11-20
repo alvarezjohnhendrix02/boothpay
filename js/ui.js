@@ -23,6 +23,7 @@ CS.ui = (function () {
     back: '<path d="M15 5l-7 7 7 7"/>',
     next: '<path d="M9 5l7 7-7 7"/>',
     logout: '<path d="M10 4H5v16h5"/><path d="M14 8l4 4-4 4M18 12H9"/>',
+    tag: '<path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.5"/>',
     ticket: '<path d="M3 7h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M15 7v10" stroke-dasharray="2 2.5"/>',
     cash: '<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 10v4M18 10v4"/>',
     phone: '<rect x="6" y="2" width="12" height="20" rx="2"/><path d="M11 18h2"/>',
