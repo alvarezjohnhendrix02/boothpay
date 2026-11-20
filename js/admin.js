@@ -14,8 +14,7 @@ CS.views.events = (function () {
       <div class="view-head"><div><h2 class="h1">Events</h2>
         <p class="sub">An event is a school fair, intramurals, or any day booths sell. New sales are linked to the running event.</p></div>
         <button class="btn primary" data-ev-new>${icon('plus')} New event</button></div>
-      ${act ? `<div class="event-now">${icon('calendar')}<span>Running now: <b>${esc(act.name)}</b>. Booth phones record sales under this event.</span></div>`
-        : `<div class="event-now none">${icon('calendar')}<span><b>No event is running, so booths cannot sign in or sell.</b> ${S.events().length ? 'Make one the running event below.' : 'Create the first event to get started.'}</span></div>`}
+      ${act ? '' : `<div class="event-now none">${icon('calendar')}<span><b>No event is running, so booths cannot sign in or sell.</b> ${S.events().length ? 'Make one the running event below.' : 'Create the first event to get started.'}</span></div>`}
       ${evs.length ? `<ul class="cards">${evs.map(e => {
         const live = act && act.event_id === e.event_id;
         return `<li class="card${live ? ' live' : ''}">
@@ -109,7 +108,7 @@ CS.admin = (function () {
 
   function header() {
     const ev = S.activeEvent(), L = CS.sync.label();
-    $('#adminEvent').innerHTML = (ev ? 'Running: ' + esc(ev.name) : 'No event running') + (CS.sync.configured() ? ` · <span class="${L.ok ? 'ok-text' : 'bad-text'}">${esc(L.text)}</span>` : '');
+    $('#adminEvent').innerHTML = (ev ? `<b class="ok-text">${esc(ev.name)}</b>` : 'No event running') + (CS.sync.configured() ? ` · <span class="${L.ok ? 'ok-text' : 'bad-text'}">${esc(L.text)}</span>` : '');
   }
 
   function syncSheet() {
