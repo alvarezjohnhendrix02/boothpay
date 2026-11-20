@@ -44,7 +44,7 @@ CS.views.expenses = (function () {
     const byType = {}; list.forEach(x => { byType[x.type] = (byType[x.type] || 0) + x.amount_c; });
     const max = Math.max(1, ...Object.values(byType)), opt = (v, cur, l) => `<option value="${esc(v)}" ${v === cur ? 'selected' : ''}>${esc(l)}</option>`;
     el.innerHTML = `
-      <div class="view-head"><div><h2 class="h1">Expenses</h2><p class="sub">Everything the club spent. Net sales = sales − expenses − LEEF share (10% of sales after expenses).</p></div>
+      <div class="view-head"><div><h2 class="h1">Expenses</h2></div>
         <button class="btn primary" data-x-new>${icon('plus')} Add expense</button></div>
       <div class="filters">
         <label class="field"><span>Event</span><select class="input" data-xf="event">${opt('*', f.event, 'All events')}${S.events().map(e => opt(e.event_id, f.event, e.name)).join('')}${opt('', f.event, 'No event')}</select></label>

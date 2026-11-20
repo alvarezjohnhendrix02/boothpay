@@ -1,6 +1,6 @@
 /* Service worker: keeps a full copy of the app on the device so it opens with no internet.
    Change VERSION on every release; phones then download the new copy and show "New version — tap to update". */
-const VERSION = 'cs-2026-11-20l';
+const VERSION = 'cs-2026-11-20m';
 const FILES = [
   './', 'index.html', 'pos.html', 'admin.html', 'manifest.json',
   'css/tokens.css', 'css/ui.css', 'css/admin.css',

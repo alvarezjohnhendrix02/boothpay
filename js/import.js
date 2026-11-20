@@ -59,8 +59,7 @@ CS.views.upload = (function () {
   function renderPick(el) {
     const ups = S.imports().slice().reverse(), evName = id => (S.events().find(e => e.event_id === id) || { name: 'No event' }).name;
     el.innerHTML = `
-      <div class="view-head"><div><h2 class="h1">Upload sales</h2>
-        <p class="sub">Bring sales from your PMS (photobooth management system) or files from booth phones into the reports.</p></div></div>
+      <div class="view-head"><div><h2 class="h1">Upload sales</h2></div></div>
       <ol class="steps panel">
         <li><b>1</b><span>In your PMS, export the event report. The <b>Excel (.xlsx)</b> file works as it is; CSV works too.</span></li>
         <li><b>2</b><span>Pick the event and booth these sales belong to.</span></li>
