@@ -12,7 +12,7 @@ CS.views.events = (function () {
     const totals = CS.report.totalsByEvent();
     el.innerHTML = `
       <div class="view-head"><div><h2 class="h1">Events</h2>
-        <p class="sub">An event is a school fair, intramurals, or any day booths sell. New sales are linked to the running event.</p></div>
+        </div>
         <button class="btn primary" data-ev-new>${icon('plus')} New event</button></div>
       ${act ? '' : `<div class="event-now none">${icon('calendar')}<span><b>No event is running, so booths cannot sign in or sell.</b> ${S.events().length ? 'Make one the running event below.' : 'Create the first event to get started.'}</span></div>`}
       ${evs.length ? `<ul class="cards">${evs.map(e => {
