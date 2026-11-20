@@ -70,8 +70,7 @@ CS.views.reports = (function () {
       <tbody>${codes.map(c => `<tr><td>${c ? `<span class="mini">${badge(boothOf(c), 'sm')}${esc(boothOf(c).name)}</span>` : 'Whole club (shared costs)'}</td>
         <td class="r num">${money(sales[c] || 0)}</td><td class="r num">${money(cost[c] || 0)}</td><td class="r num">${pl((sales[c] || 0) - (cost[c] || 0))}</td></tr>`).join('')}</tbody>
       <tfoot><tr><td><b>Total</b></td><td class="r num"><b>${money(tS)}</b></td><td class="r num"><b>${money(tE)}</b></td><td class="r num">${pl(tS - tE)}</td></tr></tfoot></table></div>
-      ${netBlock(tS, tE)}
-      <p class="sub">Expenses come from the <b>Expenses</b> page. Whole-club costs are not split between booths.</p></section>`;
+      ${netBlock(tS, tE)}</section>`;
   }
   // The event's bottom line, laid out like the PMS report.
   function netBlock(tS, tE) {
@@ -103,8 +102,7 @@ CS.views.reports = (function () {
         <td><span class="mini">${badge(boothOf(c.booth), 'sm')}${esc(boothOf(c.booth).name)}</span></td><td class="num">${dayLabel(U.dayOf(c.ts))} ${time(c.ts)}</td>
         <td class="r num">${money(c.expected_cash_c)}</td><td class="r num"><b>${money(c.counted_cash_c)}</b></td>
         <td><span class="pill ${off ? 'bad' : 'ok'}">${v === 0 ? 'Exact' : (v < 0 ? 'Short ' : 'Over ') + money(Math.abs(v))}</span></td>
-        <td class="sub">${esc(c.note || '')}</td></tr>`; }).join('')}</tbody></table></div>
-      <p class="sub">Should be = starting cash + cash sales. Differences over ₱50 are marked to check.</p></section>`;
+        <td class="sub">${esc(c.note || '')}</td></tr>`; }).join('')}</tbody></table></div></section>`;
   }
 
   // Customers who gave a name: how many, how many came back, and which grades buy.
@@ -122,9 +120,12 @@ CS.views.reports = (function () {
       <div class="row"><span>People who gave their name</span><b class="num">${people}</b></div>
       <div class="row"><span>Came back more than once</span><b class="num">${back}</b></div>
       <div class="row"><span>Sales with no name</span><b class="num">${rows.length - named.length}</b></div>
+      <p class="label cust-label">By grade level</p>
       <ul class="hbars">${Object.entries(grades).sort((a, b) => b[1] - a[1]).map(([g, n]) => `<li><span class="hb-name">${esc(g)}</span>
         <span class="hb-track"><i style="width:${(n / max * 100).toFixed(1)}%;background:var(--pink)"></i></span><span class="num hb-val"><b>${n}</b></span></li>`).join('')}</ul>
-      ${top.length ? `<p class="sub">Most visits: ${top.map(([id, n]) => { const c = CS.customer.byId(id); return `${esc(c ? CS.customer.label(c) : id)} (${n})`; }).join(', ')}</p>` : ''}
+      ${top.length ? `<p class="label cust-label">Most visits</p>
+      <ol class="top-list">${top.map(([id, n], i) => { const c = CS.customer.byId(id), [nm, ...rest] = (c ? CS.customer.label(c) : id).split(' · ');
+        return `<li><span class="top-rank">${i + 1}</span><span class="top-who"><b>${esc(nm)}</b>${rest.length ? `<span class="sub">${esc(rest.join(' · '))}</span>` : ''}</span><span class="top-n"><b class="num">${n}</b> visits</span></li>`; }).join('')}</ol>` : ''}
     </section>`;
   }
 
@@ -176,7 +177,7 @@ CS.views.reports = (function () {
     const scope = [f.event === '*' ? 'All events' : evName(f.event), f.booth === '*' ? 'all booths' : boothOf(f.booth).name, f.day === '*' ? 'all days' : dayLabel(f.day)].join(' · ');
 
     el.innerHTML = `
-      <div class="view-head"><div><h2 class="h1">Reports</h2><p class="sub">Booth sales and PMS uploads, together in one summary.</p></div>
+      <div class="view-head"><div><h2 class="h1">Reports</h2></div>
       <div class="filters compact no-print">
         <label class="field"><span>Event</span><select class="input" data-f="event">${opt('*', f.event, 'All events')}${evs.map(e => opt(e.event_id, f.event, e.name)).join('')}${evIds.includes('') ? opt('', f.event, 'No event') : ''}</select></label>
         <label class="field"><span>Booth</span><select class="input" data-f="booth">${opt('*', f.booth, 'All booths')}${boothCodes.map(c => opt(c, f.booth, boothOf(c).name)).join('')}</select></label>
@@ -212,7 +213,6 @@ CS.views.reports = (function () {
             <td class="r num">${i.qty}</td><td class="r num"><b>${money(i.total_c)}</b></td></tr>`).join('')}</tbody></table></div></section>
       </div>
       <section class="panel no-print"><p class="h3">${icon('download')} Save or print this report</p>
-        <p class="sub">Uses the filters above: ${esc(scope)}.</p>
         <div class="export-row">
           <button class="btn ghost" data-r-csv>${icon('download')} All sales (CSV)</button>
           <button class="btn ghost" data-r-sum>${icon('download')} Summary (CSV)</button>

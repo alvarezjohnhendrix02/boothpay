@@ -157,3 +157,13 @@ fieldset.field { border: 0; padding: 0; margin: 0; }
 .filters.compact .field > span { font-size: var(--t-12); color: var(--graphite); }
 .filters.compact .input { min-height: 40px; padding: 0 var(--s-3); font-size: var(--t-14); width: auto; min-width: 130px; max-width: 200px; }
 @media (max-width: 599px) { .filters.compact { width: 100%; } .filters.compact .field { flex: 1 1 30%; } .filters.compact .input { min-width: 0; max-width: none; width: 100%; } }
+
+/* reports: customers panel groups */
+.cust-label { margin-top: var(--s-4); padding-top: var(--s-3); border-top: var(--hair); }
+.top-list { display: grid; gap: var(--s-2); }
+.top-list li { display: grid; grid-template-columns: 28px 1fr auto; gap: var(--s-3); align-items: center; }
+.top-rank { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--pink); color: var(--on-pastel); font-weight: 700; font-size: var(--t-14); }
+.top-who { display: grid; min-width: 0; }
+.top-who .sub { font-size: var(--t-12); }
+.top-n { font-size: var(--t-14); color: var(--graphite); white-space: nowrap; }
+.top-n b { color: var(--ink); font-size: var(--t-16); }
