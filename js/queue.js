@@ -47,7 +47,7 @@ CS.queue = (function () {
     const b = document.getElementById('queueBtn'); if (!b) return;
     const sells = S.catalog().products.some(p => p.active && p.booth === sess.booth && p.type === 'service');
     b.hidden = !sells;
-    b.innerHTML = `${icon('ticket')}<span class="hide-sm">Queue</span><b class="q-count">0</b>`;
+    b.innerHTML = `${icon('ticket')}<span>Queue</span><b class="q-count">0</b>`;
     badge();
     setInterval(() => { badge(); const sh = document.getElementById('sheet'); if (sh.open && sh.querySelector('.q-list, .q-done') && !sh.querySelector('details[open]')) render(); }, 60000);
   }

@@ -275,12 +275,13 @@ dialog.sheet::backdrop { background: rgb(24 23 26 / .5); }
 .demo-bar ~ .topbar { top: 0; }
 
 /* ticket queue */
-.queue-btn { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 var(--s-3); border-radius: 99px; border: 2px solid var(--rule); background: var(--card); font-weight: 700; color: var(--ink); }
-.queue-btn .ic { width: 18px; height: 18px; }
+.queue-btn { position: fixed; right: var(--s-4); bottom: calc(var(--s-5) + env(safe-area-inset-bottom)); z-index: 7; display: inline-flex; align-items: center; gap: var(--s-2); min-height: 56px; padding: 0 var(--s-4) 0 var(--s-5); border-radius: 99px; border: 2px solid var(--rule); background: var(--card); font-weight: 700; font-size: var(--t-16); color: var(--ink); box-shadow: 0 8px 24px rgba(0,0,0,.35); transition: bottom var(--dur) var(--ease); }
+.cartbar:not([hidden]) ~ .queue-btn { bottom: calc(96px + env(safe-area-inset-bottom)); } /* sit above the Charge bar */
+@media (min-width: 900px) { .cartbar:not([hidden]) ~ .queue-btn { bottom: calc(var(--s-5) + env(safe-area-inset-bottom)); } }
+.queue-btn .ic { width: 20px; height: 20px; }
 .queue-btn .q-count { min-width: 24px; height: 24px; padding: 0 6px; border-radius: 12px; background: var(--wash); display: inline-grid; place-items: center; font-size: var(--t-14); }
 .queue-btn.has { border-color: var(--coral); }
 .queue-btn.has .q-count { background: var(--coral); color: var(--on-pastel); }
-.queue-btn:not([hidden]) + .chip { margin-left: 0; }
 .q-list { display: grid; gap: var(--s-2); margin-bottom: var(--s-3); }
 .q-row { display: grid; grid-template-columns: auto 1fr auto; gap: var(--s-3); align-items: center; padding: var(--s-3); border-radius: var(--r-2); background: var(--card); box-shadow: var(--lift); border-left: 5px solid var(--lemon); }
 .q-row.serving { border-left-color: var(--sky); }
