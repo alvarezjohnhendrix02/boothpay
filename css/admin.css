@@ -188,3 +188,5 @@ fieldset.field { border: 0; padding: 0; margin: 0; }
 .b-facts .ic { width: 16px; height: 16px; }
 .b-facts .mono { color: var(--ink); }
 .card-main .badges { margin-top: var(--s-2); }
+.ev-card .card-num .label { font-size: var(--t-14); }
+.ev-card .card-num .num { font-size: clamp(2rem, 6vw, var(--t-44)); line-height: 1.1; }
