@@ -19,8 +19,9 @@ CS.views.events = (function () {
         const live = act && act.event_id === e.event_id;
         return `<li class="card ev-card${live ? ' live' : ''}">
           <div class="card-main">
-            <p class="h3">${esc(e.name)} ${live ? '<span class="pill ok">Running</span>' : ''}</p>
-            <p class="sub meta-line">${icon('calendar')}${dates(e)}${e.venue ? ` ${icon('place')}${esc(e.venue)}` : ''}</p>
+            <p class="h3 ev-title">${(st => `<i class="ev-dot ${st[0]}" role="img" aria-label="${st[1]}" title="${st[1]}"></i>`)(live ? ['on', 'Running'] : (e.end || e.start) >= today() ? ['wait', 'Paused / not started'] : ['off', 'Ended'])}<span>${esc(e.name)}</span></p>
+            <p class="sub meta-line">${icon('calendar')}${dates(e)}</p>
+            ${e.venue ? `<p class="sub meta-line">${icon('place')}${esc(e.venue)}</p>` : ''}
             <div class="badges">${(e.booths || []).map(c => S.booth(c)).filter(Boolean).map(b => `<span class="mini">${badge(b, 'sm')}${esc(b.name)}</span>`).join('') || '<span class="sub">All booths</span>'}</div>
           </div>
           <div class="card-num"><p class="label">Sales</p><p class="h2 num">${money(totals[e.event_id] || 0)}</p></div>

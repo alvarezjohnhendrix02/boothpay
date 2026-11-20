@@ -174,3 +174,11 @@ fieldset.field { border: 0; padding: 0; margin: 0; }
 .ev-acts { justify-content: flex-end; gap: var(--s-1, 4px); }
 .ev-acts .icon-btn { margin-left: 0; border: 2px solid var(--rule); color: var(--ink); }
 .ev-acts .icon-btn.run { background: var(--mint); border-color: var(--mint); color: var(--on-pastel); }
+.ev-card .card-main { min-width: 0; }
+.ev-card .card-num { align-self: start; }
+.ev-title { display: flex; align-items: center; gap: var(--s-2); }
+.ev-title span { min-width: 0; overflow-wrap: anywhere; }
+.ev-dot { flex: 0 0 auto; width: 12px; height: 12px; border-radius: 50%; }
+.ev-dot.on { background: var(--mint); box-shadow: 0 0 0 4px var(--fix-wash); }
+.ev-dot.wait { background: var(--lemon); }
+.ev-dot.off { background: var(--coral); }
