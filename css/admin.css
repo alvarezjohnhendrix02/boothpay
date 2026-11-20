@@ -167,3 +167,10 @@ fieldset.field { border: 0; padding: 0; margin: 0; }
 .top-who .sub { font-size: var(--t-12); }
 .top-n { font-size: var(--t-14); color: var(--graphite); white-space: nowrap; }
 .top-n b { color: var(--ink); font-size: var(--t-16); }
+
+/* events: sales stay top-right; small icon buttons bottom-right */
+.ev-card { grid-template-columns: 1fr auto !important; }
+.ev-card .card-num { text-align: right !important; }
+.ev-acts { justify-content: flex-end; gap: var(--s-1, 4px); }
+.ev-acts .icon-btn { margin-left: 0; border: 2px solid var(--rule); color: var(--ink); }
+.ev-acts .icon-btn.run { background: var(--mint); border-color: var(--mint); color: var(--on-pastel); }

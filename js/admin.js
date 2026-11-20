@@ -17,17 +17,18 @@ CS.views.events = (function () {
       ${act ? '' : `<div class="event-now none">${icon('calendar')}<span><b>No event is running, so booths cannot sign in or sell.</b> ${S.events().length ? 'Make one the running event below.' : 'Create the first event to get started.'}</span></div>`}
       ${evs.length ? `<ul class="cards">${evs.map(e => {
         const live = act && act.event_id === e.event_id;
-        return `<li class="card${live ? ' live' : ''}">
+        return `<li class="card ev-card${live ? ' live' : ''}">
           <div class="card-main">
             <p class="h3">${esc(e.name)} ${live ? '<span class="pill ok">Running</span>' : ''}</p>
             <p class="sub meta-line">${icon('calendar')}${dates(e)}${e.venue ? ` ${icon('place')}${esc(e.venue)}` : ''}</p>
             <div class="badges">${(e.booths || []).map(c => S.booth(c)).filter(Boolean).map(b => `<span class="mini">${badge(b, 'sm')}${esc(b.name)}</span>`).join('') || '<span class="sub">All booths</span>'}</div>
           </div>
           <div class="card-num"><p class="label">Sales</p><p class="h2 num">${money(totals[e.event_id] || 0)}</p></div>
-          <div class="card-actions">
-            ${live ? '<button class="btn ghost sm" data-ev-stop>Stop running (pauses all booths)</button>' : `<button class="btn go sm" data-ev-run="${e.event_id}">${icon('check')} Make it the running event</button>`}
-            <button class="btn ghost sm" data-ev-edit="${e.event_id}">${icon('edit')} Edit</button>
-            <button class="icon-btn" data-ev-del="${e.event_id}" aria-label="Delete ${esc(e.name)}">${icon('trash')}</button>
+          <div class="card-actions ev-acts">
+            ${live ? `<button class="icon-btn" data-ev-stop aria-label="Stop running (pauses all booths)" title="Stop running (pauses all booths)">${icon('pause')}</button>`
+              : `<button class="icon-btn run" data-ev-run="${e.event_id}" aria-label="Make it the running event" title="Make it the running event">${icon('play')}</button>`}
+            <button class="icon-btn" data-ev-edit="${e.event_id}" aria-label="Edit ${esc(e.name)}" title="Edit">${icon('edit')}</button>
+            <button class="icon-btn" data-ev-del="${e.event_id}" aria-label="Delete ${esc(e.name)}" title="Delete">${icon('trash')}</button>
           </div></li>`;
       }).join('')}</ul>`
         : `<div class="empty big">${icon('calendar')}<p class="h3">No events yet</p><p>Create your first event, like "Foundation Day Fair".</p>
