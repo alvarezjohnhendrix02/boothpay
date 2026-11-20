@@ -11,10 +11,9 @@
 
   function showEvent() {
     const ev = S.activeEvent(), el = $('#eventNow');
-    el.className = 'event-now' + (ev ? '' : ' none');
-    el.innerHTML = icon('calendar') + (ev
-      ? `<span>Today: <b>${esc(ev.name)}</b>${ev.start ? ' · ' + dayLabel(ev.start) : ''}</span>`
-      : '<span>No event is running yet. Booths can sign in once the moderator starts one.</span>');
+    // No event: the sign-in box below already says so, so this line hides.
+    el.hidden = !ev; el.className = 'event-now';
+    el.innerHTML = ev ? icon('calendar') + `<span>Today: <b>${esc(ev.name)}</b>${ev.start ? ' · ' + dayLabel(ev.start) : ''}</span>` : '';
   }
 
   const roleLabel = s => s.role === 'admin' ? 'Moderator' : s.role === 'cashier' ? 'Cashier' : 'Manager';
@@ -46,7 +45,7 @@
       ${admin ? `<div class="or-line"><span>or</span></div>
         <button class="mod-btn" data-person="${admin.staff_id}">${badge(MOD, 'lg')}<span><b>I'm the moderator</b><span class="sub">Events, booths, people, uploads and reports</span></span>${icon('next', 'go')}</button>` : ''}
       ${S.demo ? '' : `<p class="center" style="margin-top:var(--s-4)"><button class="link" data-load-setup>${icon('file')} Got a setup file from the moderator? Load it</button></p>
-        <a class="demo-cta" href="index.html?demo">${icon('star')}<span><b>Try the demo</b><span class="sub">A sample event with booths, people and sales. Safe to play: it never touches real data.</span></span></a>`}`;
+        <a class="demo-cta" href="index.html?demo">${icon('help')}<span><b>Try the demo</b><span class="sub">A sample event with booths, people and sales.</span></span></a>`}`;
     const f = $('#find'); if (f && query) { f.focus(); f.setSelectionRange(query.length, query.length); }
   }
 
