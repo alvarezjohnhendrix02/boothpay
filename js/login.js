@@ -32,11 +32,11 @@
     const list = team.filter(s => !q || s.name.toLowerCase().includes(q) || s.username.includes(q));
     const admin = S.staffList('ADMIN')[0];
     $('#step').innerHTML = `
-      <p class="h2" style="margin-bottom:var(--s-3)">Sign in to sell</p>
+      <p class="h2" style="margin-bottom:var(--s-3)">Sign in</p>
       ${!S.activeEvent() ? `<p class="note">${esc(S.eventBlock(''))}</p>`
         : !booths.length ? '<p class="note">No booths are set up for today\'s event yet. Ask your moderator.</p>'
-        : `<label class="field"><span>Your booth</span>
-            <select class="input big-select" id="boothPick"><option value="">Choose your booth…</option>${booths.map(b => `<option value="${b.code}" ${b.code === pick ? 'selected' : ''}>${esc(b.name)}</option>`).join('')}</select></label>
+        : `<label class="field">
+            <select class="input big-select" id="boothPick" aria-label="Your booth"><option value="">Choose your booth…</option>${booths.map(b => `<option value="${b.code}" ${b.code === pick ? 'selected' : ''}>${esc(b.name)}</option>`).join('')}</select></label>
           ${pick ? `<p class="h3" style="margin:var(--s-4) 0 var(--s-2)">Who are you?</p>
             ${team.length > 8 ? `<input class="input" id="find" value="${esc(query)}" placeholder="Search your name" autocomplete="off" style="margin-bottom:var(--s-2)">` : ''}
             ${!team.length ? '<p class="note">No one is set up for this booth yet. Ask your moderator to add people.</p>'
