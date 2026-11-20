@@ -52,6 +52,7 @@ ol, ul { padding: 0; list-style: none; }
 /* booth badge */
 .badge { --booth: #FFB98A; width: 40px; height: 40px; border-radius: var(--r-1); background: var(--booth); color: var(--on-pastel); display: grid; place-items: center; flex: none; }
 .badge.inv { color: var(--on-ink); }
+.pin-booth { display: inline-flex; align-items: center; gap: var(--s-3); font-size: var(--t-20); margin-bottom: var(--s-2); }
 .badge.lg { width: 56px; height: 56px; border-radius: var(--r-2); } .badge.lg .ic { width: 28px; height: 28px; }
 .badge.sm { width: 28px; height: 28px; border-radius: 6px; } .badge.sm .ic { width: 16px; height: 16px; }
 

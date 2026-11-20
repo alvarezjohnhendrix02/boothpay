@@ -55,7 +55,7 @@
     $('#step').innerHTML = `
       <button class="link" data-back>${icon('back')} Not you? Choose again</button>
       <div class="center" style="display:grid;gap:var(--s-2);justify-items:center;margin:var(--s-3) 0 var(--s-4)">
-        ${badge(s.role === 'admin' ? MOD : here(), 'lg')}<p class="h2">${esc(s.name)}</p><p class="sub">${s.role === 'admin' ? 'Moderator' : 'Signing in at ' + esc(here().name) + ' · ' + roleLabel(s)}</p>
+        <p class="pin-booth">${badge(s.role === 'admin' ? MOD : here(), 'lg')}<b>${esc(s.role === 'admin' ? 'Moderator' : here().name)}</b></p>${s.role === 'admin' ? '' : `<p class="h2">${esc(s.name)}</p><p class="sub">${roleLabel(s)}</p>`}
         <p class="sub">Type your 4-digit PIN</p></div>
       <div class="dots" id="dots" aria-label="PIN digits entered"></div>
       <p class="err center" id="err" role="alert"></p>
